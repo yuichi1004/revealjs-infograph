@@ -30,6 +30,7 @@ enforced and where.
 | [`compare`](#compare--two-points-in-time)<br>two points in time, with the delta computed for you  | ![compare example](test/visual/__screenshots__/screenshots.spec.js/compare.png)                              |
 | [`venn`](#venn--when-the-overlap-is-the-point)<br>when the overlap between two sets is the point  | ![venn example](test/visual/__screenshots__/screenshots.spec.js/venn-default.png)                            |
 | [`pyramid`](#pyramid--a-hierarchy-narrowest-at-the-top)<br>a hierarchy, narrowest at the top      | ![pyramid example: Maslow's hierarchy of needs](test/visual/__screenshots__/screenshots.spec.js/pyramid.png) |
+| [`quadrant`](#quadrant--four-labelled-buckets)<br>four labelled buckets on two axes               | ![quadrant example: Eisenhower matrix](test/visual/__screenshots__/screenshots.spec.js/quadrant.png)         |
 | [pictogram marks](#pictogram-marks)<br>`waffle` and `bar` drawn as repeated silhouettes           | ![waffle drawn with person silhouettes](test/visual/__screenshots__/screenshots.spec.js/waffle-symbol.png)   |
 
 These images are the exact artifacts `npm run test:visual:docker` generates and verifies inside a
@@ -310,6 +311,55 @@ every other form uses. `data-emphasis` highlights one tier, same rule as `bar`.
 | `data-value` on a tier | Printed next to the label; never encoded in the tier's width |
 
 A pyramid stays readable for two to seven tiers — Maslow's own hierarchy is five.
+
+### `quadrant` — four labelled buckets
+
+![quadrant example: Eisenhower matrix](test/visual/__screenshots__/screenshots.spec.js/quadrant.png)
+
+```html
+<div data-infograph="quadrant" data-x-label="Urgent" data-y-label="Important">
+  <div data-label="Do First">
+    <ul>
+      <li>Fix production bug</li>
+      <li>Client deadline today</li>
+    </ul>
+  </div>
+  <div data-label="Schedule">
+    <ul>
+      <li>Plan Q3 roadmap</li>
+    </ul>
+  </div>
+  <div data-label="Delegate">
+    <ul>
+      <li>Answer routine emails</li>
+    </ul>
+  </div>
+  <div data-label="Eliminate">
+    <ul>
+      <li>Check social media</li>
+    </ul>
+  </div>
+</div>
+```
+
+Four children, in reading order — top-left, top-right, bottom-left, bottom-right. This is not a
+scatter plot: no item sits at a computed (x, y). Each quadrant is a bucket, and which bucket an item
+is in is the entire claim — the same shape `readItems()` already returns for every other form, so
+`<li>`, `data-item` children, and the `data-items` shorthand all work inside each cell for free.
+
+A cell with no `data-label` advises: without a title, the only way to know what a cell means is its
+position relative to the axis labels, and that meaning would be invisible to assistive tech.
+`data-emphasis` highlights one cell, same rule as `bar`.
+
+| Attribute                       | Meaning                           |
+| ------------------------------- | --------------------------------- |
+| `data-x-label` / `data-y-label` | Axis titles, on the host          |
+| `data-label` on a cell          | That cell's title                 |
+| `<li>` / `data-item` in a cell  | One task in that cell             |
+| `data-emphasis`                 | Which cell to emphasise (1-based) |
+
+Keep each cell to a handful of items — a quadrant is for narrowing down what matters, and a cell
+with a dozen unsorted tasks in it has stopped doing that.
 
 ### Pictogram marks
 
