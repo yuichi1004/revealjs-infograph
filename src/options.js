@@ -22,6 +22,8 @@
  * @property {number} delay     Wait after the slide activates, ms.
  * @property {number} maxSeries Advise above this many series (working memory).
  * @property {boolean} quiet    Suppress authoring advice.
+ * @property {string|null} symbol      Built-in silhouette name for waffle/bar marks.
+ * @property {string|null} symbolPath  A custom 24×24 outline, instead of a name.
  */
 
 /** @type {InfographConfig} */
@@ -46,6 +48,13 @@ export const DEFAULTS = {
   maxSeries: 4,
 
   quiet: false,
+
+  // Blocks by default. A silhouette is opt-in because it only pays for itself
+  // when the subject is a thing worth picturing — people, buildings, litres. A
+  // deck about abstract percentages is better served by a plain square, and a
+  // default that guessed otherwise would be decoration.
+  symbol: null,
+  symbolPath: null,
 };
 
 /** camelCase → the `data-ig-*` attribute that overrides it. */
@@ -57,6 +66,8 @@ const OPTION_ATTRS = /** @type {const} */ ({
   duration: 'igDuration',
   delay: 'igDelay',
   maxSeries: 'igMaxSeries',
+  symbol: 'igSymbol',
+  symbolPath: 'igSymbolPath',
 });
 
 /**
@@ -110,7 +121,10 @@ export function resolveElementConfig(host, config) {
         if (raw === 'compact' || raw === 'comfortable') out.density = raw;
         break;
       default:
-        out[/** @type {'palette'} */ (key)] = raw;
+        // The remaining keys are all plain strings. Naming them keeps this cast
+        // honest: add a non-string option without a `case` above and the
+        // typechecker says so, rather than this silently widening to `any`.
+        out[/** @type {'palette'|'symbol'|'symbolPath'} */ (key)] = raw;
     }
   }
 

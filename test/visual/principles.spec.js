@@ -29,6 +29,7 @@ import {
   overflowingIn,
   textCollisionsIn,
   decorationIn,
+  masksOf,
 } from './probes.js';
 
 test.beforeEach(async ({ page }) => {
@@ -72,7 +73,10 @@ function fractionOf(x) {
  * ------------------------------------------------------------------ */
 
 test.describe('principle 1: length on a common baseline', () => {
-  for (const id of ['bar-plain', 'bar-emphasis', 'bar-long-labels']) {
+  // bar-symbol is in this list on purpose. Swapping a continuous fill for a row
+  // of glyphs is only defensible if length still means magnitude, so it faces
+  // exactly the same two assertions as the plain bars, unrelaxed.
+  for (const id of ['bar-plain', 'bar-emphasis', 'bar-long-labels', 'bar-symbol']) {
     test(`${id}: every bar starts at the same x`, async ({ page }) => {
       const fills = await page.evaluate(rectsOf, [stage(id), '.ig-bar-fill']);
       expect(fills.length).toBeGreaterThan(1);
@@ -132,7 +136,7 @@ test.describe('principle 2: working memory', () => {
   test('no built-in case exceeds the default series ceiling', async ({ page }) => {
     // The package advises past four series. Its own examples should not need
     // the advice — a suite that ships figures it warns about is not credible.
-    for (const id of ['bar-plain', 'bar-emphasis', 'bar-long-labels']) {
+    for (const id of ['bar-plain', 'bar-emphasis', 'bar-long-labels', 'bar-symbol']) {
       const tracks = await page.evaluate(rectsOf, [stage(id), '.ig-bar-track']);
       expect(tracks.length, `${id} draws ${tracks.length} series`).toBeLessThanOrEqual(4);
     }
@@ -497,6 +501,122 @@ test.describe('principle 11: geometry says what the markup says', () => {
     ]);
     expect(values).toHaveLength(2);
     expect(values[0]['font-size']).toBe(values[1]['font-size']);
+  });
+});
+
+/* ------------------------------------------------------------------ *
+ * ISOTYPE — a sign is repeated, never enlarged
+ * ------------------------------------------------------------------ */
+
+test.describe('pictogram marks', () => {
+  test('the waffle stays a countable 10×10 grid of square cells', async ({ page }) => {
+    // The entire justification for pictogram marks is that nothing about the
+    // encoding changes. If a glyph made the cells non-square or knocked the
+    // grid out of alignment, "count the rows" would stop being true and the
+    // symbols would have cost precision to buy decoration.
+    const cells = await page.evaluate(rectsOf, [stage('waffle-symbol'), '.ig-waffle-cell']);
+    expect(cells).toHaveLength(100);
+
+    for (const cell of cells) {
+      expect(Math.abs(cell.width - cell.height), 'cells must stay square').toBeLessThan(0.6);
+      expect(cell.width).toBeGreaterThan(4);
+    }
+
+    expect(new Set(cells.map((c) => Math.round(c.left))).size, 'columns').toBe(10);
+    expect(new Set(cells.map((c) => Math.round(c.top))).size, 'rows').toBe(10);
+  });
+
+  test('the same 44 cells are filled, still contiguous', async ({ page }) => {
+    const filled = await page.evaluate(
+      ([root]) => {
+        const grid = document.querySelector(`${root} .ig-waffle-grid`);
+        return [...(grid?.children ?? [])].map((c) => c.classList.contains('ig-waffle-cell-on'));
+      },
+      [stage('waffle-symbol')],
+    );
+
+    const on = filled.filter(Boolean).length;
+    expect(on).toBe(44);
+    expect(filled.slice(0, on).every(Boolean)).toBe(true);
+  });
+
+  test('the marks are really painted as glyphs, not just told to be', async ({ page }) => {
+    // Reads the computed value, so this fails if `--ig-symbol` never resolved.
+    // That is not hypothetical: the `--ig-*` tokens were once scoped to
+    // `.reveal` and silently resolved to nothing outside a deck.
+    const masks = await page.evaluate(masksOf, [stage('waffle-symbol'), '.ig-waffle-cell']);
+    expect(masks).toHaveLength(100);
+    expect(
+      masks.filter((m) => !m.masked).length,
+      `cells without a resolved symbol mask (first: ${masks.find((m) => !m.masked)?.value})`,
+    ).toBe(0);
+  });
+
+  test('a bar draws one glyph per unit, so the count is the value', async ({ page }) => {
+    // data-ig-symbol-unit="10" against 34 / 52 / 71 — that is 3, 5 and 7 whole
+    // glyphs, each with a partial after it.
+    const perRow = await page.evaluate(
+      ([root]) => {
+        const fills = document.querySelectorAll(`${root} .ig-bar-fill`);
+        return [...fills].map((fill) => ({
+          whole: fill.querySelectorAll(':scope > .ig-bar-glyph').length,
+          partial: fill.querySelectorAll(':scope > .ig-bar-glyph-partial').length,
+        }));
+      },
+      [stage('bar-symbol')],
+    );
+
+    expect(perRow).toEqual([
+      { whole: 3, partial: 1 },
+      { whole: 5, partial: 1 },
+      { whole: 7, partial: 1 },
+    ]);
+  });
+
+  test('a partial glyph is a clipped whole one, never a smaller one', async ({ page }) => {
+    // The ISOTYPE rule this whole feature is built on. A scaled-down glyph would
+    // say "a smaller thing"; a clipped one says "less of them".
+    const [whole] = await page.evaluate(rectsOf, [
+      `${stage('bar-symbol')} .ig-bar-fill`,
+      ':scope > .ig-bar-glyph',
+    ]);
+    const [clipper] = await page.evaluate(rectsOf, [
+      `${stage('bar-symbol')} .ig-bar-fill`,
+      ':scope > .ig-bar-glyph-partial',
+    ]);
+    const [inner] = await page.evaluate(rectsOf, [
+      `${stage('bar-symbol')} .ig-bar-glyph-partial`,
+      '.ig-bar-glyph',
+    ]);
+
+    // 34 with a unit of 10 leaves 0.4 of a symbol.
+    expect(clipper.width / whole.width).toBeCloseTo(0.4, 1);
+    // …but the glyph inside is full size and merely cut off.
+    expect(inner.width).toBeCloseTo(whole.width, 1);
+    expect(inner.height).toBeCloseTo(whole.height, 1);
+  });
+
+  test('every glyph carrying a value is the same size', async ({ page }) => {
+    // One symbol must equal one unit everywhere, or counting them means nothing.
+    // Scoped to the bars: the key's glyph is deliberately text-sized, because it
+    // states the scale rather than carrying a value.
+    const glyphs = await page.evaluate(rectsOf, [
+      `${stage('bar-symbol')} .ig-bar`,
+      '.ig-bar-fill .ig-bar-glyph',
+    ]);
+    expect(glyphs.length).toBeGreaterThan(10);
+
+    const widths = glyphs.map((g) => g.width);
+    const heights = glyphs.map((g) => g.height);
+    expect(Math.max(...widths) - Math.min(...widths), 'glyph widths').toBeLessThan(0.6);
+    expect(Math.max(...heights) - Math.min(...heights), 'glyph heights').toBeLessThan(0.6);
+  });
+
+  test('the bar states what one glyph is worth', async ({ page }) => {
+    // An ISOTYPE chart whose unit is unstated cannot be read at all.
+    const unit = page.locator(`${stage('bar-symbol')} .ig-bar-unit`);
+    await expect(unit).toHaveCount(1);
+    await expect(unit).toContainText('10');
   });
 });
 

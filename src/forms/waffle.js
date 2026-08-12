@@ -1,7 +1,7 @@
 /**
  * waffle — one share of a whole, made countable.
  *
- *   <div data-infograph="waffle" data-value="43.8%" data-label="同意した回答者"></div>
+ *   <div data-infograph="waffle" data-value="43.8%" data-label="Respondents who agreed"></div>
  *
  * The alternative for this data is a pie, and the pie loses. Reading a share
  * off a pie means judging an angle or an area — fourth and fifth in Cleveland &
@@ -21,10 +21,11 @@ import { el, cls } from '../dom.js';
 import { figure, hideFromAt, dataTable } from '../a11y.js';
 import { parseNumber, formatNumber } from '../parse.js';
 import { WAFFLE } from '../design/tokens.js';
+import { resolveSymbol, symbolUrl } from '../design/symbols.js';
 import { advise } from '../warn.js';
 
 /** @type {import('./index.js').Form} */
-export default function waffle({ host }) {
+export default function waffle({ host, config }) {
   const data = /** @type {HTMLElement} */ (host).dataset;
   const number = parseNumber(data.value);
   const label = data.label ?? '';
@@ -32,6 +33,11 @@ export default function waffle({ host }) {
   const total = Number(data.total ?? WAFFLE.total);
   const share = shareOf(number, total, host);
   const filled = Math.round(share * WAFFLE.total);
+
+  // A silhouette changes what shape each cell is painted in and nothing else:
+  // still a hundred cells, still one per unit, still counted in rows. That is
+  // the whole reason it is allowed — see src/design/symbols.js.
+  const symbol = resolveSymbol(config.symbol, config.symbolPath, host);
 
   const grid = el('div', {
     class: cls('waffle-grid'),
@@ -51,7 +57,13 @@ export default function waffle({ host }) {
 
   const visual = el(
     'div',
-    { class: cls('waffle') },
+    {
+      class: [cls('waffle'), symbol ? cls('waffle', 'symbol') : ''],
+      // Set once here and inherited by all 100 cells, rather than written onto
+      // each of them: custom properties inherit, so this is one string in the
+      // DOM instead of a hundred copies of the same data URI.
+      style: { '--ig-symbol': symbol ? symbolUrl(symbol) : null },
+    },
     hideFromAt(grid),
     el(
       'div',
@@ -71,10 +83,10 @@ export default function waffle({ host }) {
     // nothing else. Two rows is enough: a share and its complement.
     table: dataTable({
       caption: label || 'share of total',
-      columns: ['区分', '値'],
+      columns: ['Segment', 'Value'],
       rows: [
         [label || 'share', number.valid ? number.text : '—'],
-        ['残り', remainder],
+        ['Remainder', remainder],
       ],
     }),
     caption: data.caption,

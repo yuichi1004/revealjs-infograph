@@ -97,3 +97,63 @@ describe('tabular fallback', () => {
     expect(/** @type {HTMLElement} */ (wrapper).style.position).toBe('absolute');
   });
 });
+
+/*
+ * Pictogram marks must not cost anything here. They are a paint-level change to
+ * marks that were already hidden from assistive tech, so a screen reader should
+ * not be able to tell symbol mode from block mode at all.
+ */
+describe('pictogram marks', () => {
+  // Same data on both sides of each pair — only the symbol attributes differ,
+  // so any difference in the accessible output is caused by the symbols.
+  const PAIRS = {
+    waffle: {
+      plain: '<div data-infograph="waffle" data-value="43.8%" data-label="Agreed"></div>',
+      symbol:
+        '<div data-infograph="waffle" data-value="43.8%" data-label="Agreed" data-ig-symbol="person"></div>',
+    },
+    bar: {
+      plain:
+        '<div data-infograph="bar" data-label="Workplace" data-items="Remote: 34, Office: 52"></div>',
+      symbol:
+        '<div data-infograph="bar" data-label="Workplace" data-ig-symbol="person" data-ig-symbol-unit="10" data-items="Remote: 34, Office: 52"></div>',
+    },
+  };
+
+  it.each(Object.keys(PAIRS))('%s keeps its accessible name and table', (form) => {
+    const figure = render(PAIRS[form].symbol);
+    expect(figure.getAttribute('aria-label')?.trim()).toBeTruthy();
+    expect(figure.querySelector('table')).not.toBeNull();
+  });
+
+  it.each(Object.keys(PAIRS))('%s reads the same with symbols as without', (form) => {
+    // The glyphs live inside the same aria-hidden subtree the blocks did, so a
+    // screen reader should not be able to tell the two apart.
+    const plain = render(PAIRS[form].plain).querySelector('.ig-sr-only')?.textContent;
+    const symbol = render(PAIRS[form].symbol).querySelector('.ig-sr-only')?.textContent;
+    expect(symbol).toBe(plain);
+    expect(symbol?.trim()).toBeTruthy();
+  });
+
+  it.each(Object.keys(PAIRS))('%s keeps its accessible name unchanged', (form) => {
+    expect(render(PAIRS[form].symbol).getAttribute('aria-label')).toBe(
+      render(PAIRS[form].plain).getAttribute('aria-label'),
+    );
+  });
+
+  it('states the unit in text, not only as a glyph', () => {
+    // The count is the encoding, so "one symbol = 10" is not decoration — a
+    // reader who cannot see the glyphs still needs the scale.
+    const unit = render(PAIRS.bar.symbol).querySelector('.ig-bar-unit');
+    expect(unit?.textContent).toContain('10');
+    expect(unit?.closest('[aria-hidden="true"]')).toBeNull();
+  });
+
+  it.each(Object.keys(PAIRS))('%s renders identically twice', (form) => {
+    // The reason symbols are a data-URI mask and not a <symbol>/<use> pair: the
+    // latter needs a unique id per figure, and this is what would catch it.
+    const a = render(PAIRS[form].symbol);
+    const b = render(PAIRS[form].symbol);
+    expect(a.innerHTML).toBe(b.innerHTML);
+  });
+});

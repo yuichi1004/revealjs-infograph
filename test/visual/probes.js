@@ -257,6 +257,28 @@ export function textCollisionsIn([rootSelector]) {
 }
 
 /**
+ * Whether an element is actually painted as a pictogram.
+ *
+ * Distinct from "the CSS says mask-image": this reads the computed value, so it
+ * fails if the custom property never resolved — the exact failure mode that hid
+ * for a whole afternoon when `--ig-*` tokens turned out to be scoped to
+ * `.reveal` and every colour silently fell through to nothing.
+ *
+ * @param {[string, string]} args `[rootSelector, selector]`
+ * @returns {Array<{ masked: boolean, value: string }>}
+ */
+export function masksOf([rootSelector, selector]) {
+  const root = document.querySelector(rootSelector);
+  if (!root) throw new Error(`no element matches ${rootSelector}`);
+
+  return [...root.querySelectorAll(selector)].map((el) => {
+    const computed = getComputedStyle(el);
+    const value = computed.maskImage || computed.webkitMaskImage || 'none';
+    return { masked: value !== 'none' && value.includes('data:image/svg+xml'), value };
+  });
+}
+
+/**
  * Decoration that this package claims not to emit.
  *
  * @param {[string]} args `[rootSelector]`
@@ -266,6 +288,21 @@ export function decorationIn([rootSelector]) {
   const root = document.querySelector(rootSelector);
   if (!root) throw new Error(`no element matches ${rootSelector}`);
 
+  /*
+   * Elements allowed to carry a pictogram mask.
+   *
+   * A silhouette is only legitimate when it *is* the mark — one repeated symbol
+   * standing for one unit. The same mask on a container, a label or a figure
+   * background would be exactly the ornament principle 5 rules out, so the
+   * allowance is granted per class rather than for `mask-image` generally, and
+   * widening it has to be a deliberate, reviewable edit.
+   *
+   * Declared inside the function because this whole file is serialised into the
+   * page by `page.evaluate` — a module-scope const is not in scope there, and
+   * the probe throws rather than silently passing.
+   */
+  const markClasses = ['ig-waffle-cell', 'ig-bar-glyph'];
+
   const out = [];
   for (const el of [root, ...root.querySelectorAll('*')]) {
     const computed = getComputedStyle(el);
@@ -273,6 +310,14 @@ export function decorationIn([rootSelector]) {
 
     if (computed.backgroundImage && computed.backgroundImage !== 'none') {
       out.push({ selector, property: 'background-image', value: computed.backgroundImage });
+    }
+
+    // A mask is how a pictogram mark gets its shape. On anything that is not a
+    // mark, it is a picture laid over the figure.
+    const mask = computed.maskImage || computed.webkitMaskImage;
+    const isMark = markClasses.some((name) => el.classList.contains(name));
+    if (mask && mask !== 'none' && !isMark) {
+      out.push({ selector, property: 'mask-image', value: mask });
     }
     if (computed.textShadow && computed.textShadow !== 'none') {
       out.push({ selector, property: 'text-shadow', value: computed.textShadow });

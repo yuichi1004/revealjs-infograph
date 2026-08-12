@@ -73,6 +73,25 @@ export const CASES = [
   },
 
   {
+    id: 'waffle-symbol',
+    title: 'waffle — pictogram marks',
+    html: `<div data-infograph="waffle" data-value="43.8%" data-label="Respondents who agreed"
+                data-ig-symbol="person"></div>`,
+    values: [43.8],
+    note: 'ISOTYPE: the cells must stay square and countable when they become glyphs.',
+  },
+
+  {
+    id: 'bar-symbol',
+    title: 'bar — pictogram marks',
+    html: `<div data-infograph="bar" data-label="Where people work each week"
+                data-ig-symbol="person" data-ig-symbol-unit="10"
+                data-items="Remote: 34, Office: 52, Hybrid: 71"></div>`,
+    values: [34, 52, 71],
+    note: 'One symbol = 10, so the count is the value; the last symbol is clipped, never shrunk.',
+  },
+
+  {
     id: 'flow',
     title: 'flow',
     html: `<div data-infograph="flow">

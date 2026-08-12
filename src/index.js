@@ -26,5 +26,6 @@ export { parseNumber, formatNumber, readItems, parseItemList } from './parse.js'
 export { PALETTES, THRESHOLDS, resolvePalette, auditPalette, seriesVar } from './design/palette.js';
 export { contrastRatio, deltaE, simulateCvd, separation } from './design/contrast.js';
 export { INTENTS, recommendForm } from './design/encode.js';
+export { SYMBOLS, VIEWBOX, symbolNames, resolveSymbol, symbolUrl } from './design/symbols.js';
 export { el, svgEl, cls, NS } from './dom.js';
 export { figure, dataTable, hideFromAt } from './a11y.js';

@@ -190,6 +190,56 @@
   color: var(--ig-text-2);
 }
 
+/* ---------- pictogram marks (ISOTYPE) ---------- */
+
+/*
+ * A silhouette changes what shape a mark is painted in — nothing else.
+ *
+ * Implemented as a mask over the mark's own background rather than as an inline
+ * <svg> child, for three reasons that each rule out the alternative:
+ *
+ *   - The colour logic above keeps working untouched. `.ig-waffle-cell-on`
+ *     still just swaps `background`, so emphasis and de-emphasis need no
+ *     symbol-aware branches anywhere.
+ *   - No extra DOM. A waffle is still exactly 100 spans, not 300 nodes.
+ *   - No minted ids. A <symbol>/<use> implementation would need a unique id per
+ *     figure, and test/a11y.test.js asserts two figures render byte-identical.
+ *
+ * The element's own box is untouched, so the geometry assertions that make the
+ * waffle trustworthy — cells square within 0.6px, ten distinct columns and ten
+ * distinct rows — hold in symbol mode without being relaxed.
+ *
+ * `--ig-symbol` is set on the figure by the form and inherits down to the marks.
+ */
+.ig-waffle-symbol .ig-waffle-cell,
+.ig-bar-glyph {
+  mask-image: var(--ig-symbol);
+  -webkit-mask-image: var(--ig-symbol);
+  mask-size: contain;
+  -webkit-mask-size: contain;
+  mask-position: center;
+  -webkit-mask-position: center;
+  mask-repeat: no-repeat;
+  -webkit-mask-repeat: no-repeat;
+}
+
+.ig-waffle-symbol .ig-waffle-cell {
+  /*
+   * The hairline goes. An inset shadow is part of the element's paint, so the
+   * mask would carve it into an outline of the glyph's bounding box — visible
+   * noise inside every unfilled symbol. Without an edge to define them the
+   * unfilled glyphs need to carry themselves, so they take the de-emphasis gray
+   * that bars already use for "present, but not the subject".
+   */
+  box-shadow: none;
+  border-radius: 0;
+  background: var(--ig-muted);
+}
+
+.ig-waffle-symbol .ig-waffle-cell-on {
+  background: var(--ig-mark-1);
+}
+
 /* ---------- bar ---------- */
 
 /*
@@ -248,6 +298,85 @@
 .ig-bar-row-on .ig-bar-name,
 .ig-bar-row-on .ig-bar-value {
   color: var(--ig-ink-1);
+}
+
+/* ---------- bar, in symbol mode ---------- */
+
+/*
+ * The bar becomes a row of countable symbols instead of one continuous fill.
+ *
+ * The middle column stops being `1fr`. In symbol mode the track is quantised —
+ * its width is (value / unit) whole slots — so a `1fr` column would stretch past
+ * the symbols and strand the value column at the far right of the figure. The
+ * label column keeps its sizing, so the shared left edge is unaffected.
+ */
+.ig-bar-symbol {
+  grid-template-columns: minmax(6ch, max-content) max-content max-content;
+  --ig-symbol-slot: 1.5em;
+}
+
+.ig-bar-symbol .ig-bar-track {
+  /* The track no longer defines the scale; the slots do. */
+  width: max-content;
+}
+
+.ig-bar-fill-symbol {
+  display: flex;
+  align-items: center;
+  /* Width comes from the slots themselves, so it is exactly proportional to
+     the value without a percentage ever being involved. */
+  width: max-content;
+  background: none;
+  border-radius: 0;
+}
+
+.ig-bar-glyph {
+  /*
+   * `display: block` is load-bearing, not tidiness. These are spans, and the
+   * ones that are direct flex children get blockified for free — but the glyph
+   * inside a partial clipper is not a flex item, so it stayed inline, ignored
+   * its width, and rendered at zero. The fractional symbol came out as an empty
+   * gap of exactly the right size, which kept the bar's length correct and made
+   * the bug invisible to every assertion except one that measured the glyph.
+   */
+  display: block;
+  width: var(--ig-symbol-slot);
+  height: var(--ig-symbol-slot);
+  flex: none;
+  background: var(--ig-bar-fill, var(--ig-mark-1));
+}
+
+/*
+ * A fractional symbol is a vertical slice of a whole one, never a smaller one.
+ * A shrunken glyph would read as "a smaller thing" rather than "less of them" —
+ * the exact substitution of area for count that pictorial charts get wrong.
+ */
+.ig-bar-glyph-partial {
+  display: block;
+  width: calc(var(--ig-symbol-slot) * var(--ig-symbol-fraction, 1));
+  height: var(--ig-symbol-slot);
+  overflow: hidden;
+  flex: none;
+}
+
+.ig-bar-unit {
+  grid-column: 2 / -1;
+  display: flex;
+  align-items: center;
+  gap: 0.4em;
+  margin: 0.2em 0 0;
+  font-size: 0.85rem;
+  color: var(--ig-text-2);
+}
+
+/*
+ * The key's own symbol is a mark, so it is painted like one — but at text size
+ * and in the muted ink, because it is stating the scale rather than carrying a
+ * value.
+ */
+.ig-bar-glyph-key {
+  --ig-symbol-slot: 1em;
+  background: var(--ig-text-2);
 }
 
 /* ---------- flow ---------- */
@@ -521,12 +650,30 @@
   animation-delay: calc(var(--ig-enter-delay) + var(--ig-i) * 60ms);
 }
 
+/*
+ * A symbol bar does not stretch — `scaleX` from 0 would squash every glyph flat
+ * and then unsquash it, which is a wobble rather than a chart growing. The
+ * symbols arrive one at a time instead, on the same fast stagger the waffle
+ * uses, so the motion reads as the quantity being counted out.
+ */
+.ig-enter .ig-bar-fill-symbol {
+  animation: none;
+}
+
 .ig-enter .ig-waffle-cell-on,
 .ig-enter .ig-venn-circle {
   animation: ig-pop var(--ig-enter-duration) ease-out backwards;
   /* Waffle cells stagger fast: 100 × 18ms would take longer than the sentence
      the speaker is saying over it. */
   animation-delay: calc(var(--ig-enter-delay) + var(--ig-i) * 6ms);
+  transform-origin: center;
+}
+
+/* A bar holds a couple of dozen symbols, not a hundred, so they can afford a
+   slower stagger than the waffle without outlasting the speaker. */
+.ig-enter .ig-bar-glyph {
+  animation: ig-pop var(--ig-enter-duration) ease-out backwards;
+  animation-delay: calc(var(--ig-enter-delay) + var(--ig-i) * 22ms);
   transform-origin: center;
 }
 
