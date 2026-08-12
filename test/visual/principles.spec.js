@@ -925,15 +925,83 @@ test.describe('quadrant: four equal cells sharing the grid’s edges', () => {
 
   test('axis labels sit outside the 2×2 block', async ({ page }) => {
     const grid = (await page.evaluate(rectsOf, [stage('quadrant'), '.ig-quadrant-grid']))[0];
-    const [xLabel] = await page.evaluate(rectsOf, [stage('quadrant'), '.ig-quadrant-x-label']);
-    const [yLabel] = await page.evaluate(rectsOf, [stage('quadrant'), '.ig-quadrant-y-label']);
+    const xLabels = await page.evaluate(rectsOf, [stage('quadrant'), '.ig-quadrant-x-label']);
+    const yLabels = await page.evaluate(rectsOf, [stage('quadrant'), '.ig-quadrant-y-label']);
 
-    expect(xLabel.top, 'x-axis label must sit below the grid').toBeGreaterThanOrEqual(
+    // Asserted rather than destructured: there is exactly one dimension name
+    // per axis, and taking `[0]` of an empty list would let this pass without
+    // measuring anything.
+    expect(xLabels, 'one x-axis dimension name').toHaveLength(1);
+    expect(yLabels, 'one y-axis dimension name').toHaveLength(1);
+
+    expect(xLabels[0].top, 'x-axis label must sit below the grid').toBeGreaterThanOrEqual(
       grid.bottom - 1,
     );
-    expect(yLabel.right, 'y-axis label must sit left of the grid').toBeLessThanOrEqual(
+    expect(yLabels[0].right, 'y-axis label must sit left of the grid').toBeLessThanOrEqual(
       grid.left + 1,
     );
+  });
+
+  /*
+   * The direction of each axis — the thing issue #8 was about. An axis name on
+   * its own says only what is measured; these assert that each *end* is named
+   * and, more importantly, that each name is physically attached to the column
+   * or row it describes. A header list rendered in the wrong order would still
+   * be four labels in the right general area; only measuring each against its
+   * own cells catches it.
+   */
+  test('each column header sits over its own column', async ({ page }) => {
+    const [tl, tr] = await page.evaluate(rectsOf, [stage('quadrant'), '.ig-quadrant-cell']);
+    const headers = await page.evaluate(rectsOf, [stage('quadrant'), '.ig-quadrant-col-header']);
+    expect(headers, 'both columns must be named').toHaveLength(2);
+
+    const centre = (/** @type {{left:number,right:number}} */ r) => (r.left + r.right) / 2;
+
+    expect(centre(headers[0]), 'first header must be centred over the left column').toBeCloseTo(
+      centre(tl),
+      0,
+    );
+    expect(centre(headers[1]), 'second header must be centred over the right column').toBeCloseTo(
+      centre(tr),
+      0,
+    );
+  });
+
+  test('each row header sits beside its own row', async ({ page }) => {
+    const [tl, , bl] = await page.evaluate(rectsOf, [stage('quadrant'), '.ig-quadrant-cell']);
+    const headers = await page.evaluate(rectsOf, [stage('quadrant'), '.ig-quadrant-row-header']);
+    expect(headers, 'both rows must be named').toHaveLength(2);
+
+    const middle = (/** @type {{top:number,bottom:number}} */ r) => (r.top + r.bottom) / 2;
+
+    expect(middle(headers[0]), 'first header must be centred on the top row').toBeCloseTo(
+      middle(tl),
+      0,
+    );
+    expect(middle(headers[1]), 'second header must be centred on the bottom row').toBeCloseTo(
+      middle(bl),
+      0,
+    );
+  });
+
+  test('headers sit outside the cells, not on top of them', async ({ page }) => {
+    const cells = await page.evaluate(rectsOf, [stage('quadrant'), '.ig-quadrant-cell']);
+    const colHeaders = await page.evaluate(rectsOf, [stage('quadrant'), '.ig-quadrant-col-header']);
+    const rowHeaders = await page.evaluate(rectsOf, [stage('quadrant'), '.ig-quadrant-row-header']);
+
+    const topOfCells = Math.min(...cells.map((c) => c.top));
+    const leftOfCells = Math.min(...cells.map((c) => c.left));
+
+    for (const [i, header] of colHeaders.entries()) {
+      expect(header.bottom, `column header ${i} must sit above the cells`).toBeLessThanOrEqual(
+        topOfCells + 1,
+      );
+    }
+    for (const [i, header] of rowHeaders.entries()) {
+      expect(header.right, `row header ${i} must sit left of the cells`).toBeLessThanOrEqual(
+        leftOfCells + 1,
+      );
+    }
   });
 });
 

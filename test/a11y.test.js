@@ -36,7 +36,9 @@ const SAMPLES = {
             <li>Check</li>
             <li>Act</li>
           </ul></div>`,
-  quadrant: `<div data-infograph="quadrant" data-x-label="Urgent" data-y-label="Important">
+  quadrant: `<div data-infograph="quadrant"
+               data-x-label="Urgency" data-columns="Urgent, Not urgent"
+               data-y-label="Importance" data-rows="Important, Not important">
                <div data-label="Do First"><ul><li>Fix production bug</li></ul></div>
                <div data-label="Schedule"><ul><li>Plan Q3 roadmap</li></ul></div>
                <div data-label="Delegate"><ul><li>Answer routine emails</li></ul></div>
