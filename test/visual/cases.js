@@ -136,6 +136,19 @@ export const CASES = [
                 data-a="In-house development" data-b="Globalization" data-ab="Culture integration"></div>`,
     note: 'Lens geometry at the large end. Same labels, so a diff isolates shape.',
   },
+
+  {
+    id: 'pyramid',
+    title: 'pyramid — Maslow’s hierarchy of needs',
+    html: `<div data-infograph="pyramid"><ul>
+             <li>Self-actualization</li>
+             <li>Esteem</li>
+             <li>Love and belonging</li>
+             <li>Safety needs</li>
+             <li>Physiological needs</li>
+           </ul></div>`,
+    note: 'Width states rank, not magnitude: tiers must narrow monotonically toward the apex.',
+  },
 ];
 
 /** @param {string} id */

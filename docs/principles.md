@@ -55,6 +55,19 @@ value ratios within ±1px, and every track shares a right edge (the `principle 1
 **Why no pie chart**: it would ask waffle's question — one that position can answer — using angle
 and area, the two lowest-ranked tasks instead.
 
+**`pyramid` is the second form, after venn, where the geometry is topological rather than
+quantitative.** Its tier widths state rank ("this sits above that"), never magnitude — deliberately,
+because a pyramid whose width _did_ encode a value would be the trapezoid version of a pie chart:
+area grows faster than width, so a reader judging area misjudges the number. A tier's `data-value`
+is printed but never fed into the clip, and supplying one advises toward `bar` or `waffle`.
+
+**Visual verification**: hit-testing (`elementAtFraction`), not a bounding-box measurement —
+`getBoundingClientRect()` is unaffected by `clip-path`, so every tier's box reports the same
+full-width rectangle regardless of what is actually painted. Sample points are derived from the same
+polygon formula `src/forms/pyramid.js` uses, just inside and just outside each tier's slanted edge,
+confirming the trapezoid is really cut rather than merely claimed. A second test walks tier to tier
+confirming the painted edge moves outward monotonically from apex to base.
+
 ## 2. Working memory holds around four chunks
 
 "7±2" is about rehearsed digit strings. What you can hold _while reading a figure at the same

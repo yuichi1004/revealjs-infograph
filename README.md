@@ -21,15 +21,16 @@ enforced and where.
 
 ## Gallery
 
-| Form                                                                                              |                                                                                                            |     |
-| ------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------- | --- |
-| [`stat`](#stat--a-single-headline-number)<br>a single headline number                             | ![stat example](test/visual/__screenshots__/screenshots.spec.js/stat.png)                                  |
-| [`waffle`](#waffle--a-share-of-the-whole)<br>a share of the whole, countable instead of estimated | ![waffle example](test/visual/__screenshots__/screenshots.spec.js/waffle.png)                              |
-| [`bar`](#bar--comparing-quantities)<br>comparing quantities, with at most one emphasis            | ![bar example with one bar emphasised](test/visual/__screenshots__/screenshots.spec.js/bar-emphasis.png)   |
-| [`flow`](#flow--stages-in-order)<br>ordered stages with explicit connectors                       | ![flow example](test/visual/__screenshots__/screenshots.spec.js/flow.png)                                  |
-| [`compare`](#compare--two-points-in-time)<br>two points in time, with the delta computed for you  | ![compare example](test/visual/__screenshots__/screenshots.spec.js/compare.png)                            |
-| [`venn`](#venn--when-the-overlap-is-the-point)<br>when the overlap between two sets is the point  | ![venn example](test/visual/__screenshots__/screenshots.spec.js/venn-default.png)                          |
-| [pictogram marks](#pictogram-marks)<br>`waffle` and `bar` drawn as repeated silhouettes           | ![waffle drawn with person silhouettes](test/visual/__screenshots__/screenshots.spec.js/waffle-symbol.png) |
+| Form                                                                                              |                                                                                                              |     |
+| ------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------ | --- |
+| [`stat`](#stat--a-single-headline-number)<br>a single headline number                             | ![stat example](test/visual/__screenshots__/screenshots.spec.js/stat.png)                                    |
+| [`waffle`](#waffle--a-share-of-the-whole)<br>a share of the whole, countable instead of estimated | ![waffle example](test/visual/__screenshots__/screenshots.spec.js/waffle.png)                                |
+| [`bar`](#bar--comparing-quantities)<br>comparing quantities, with at most one emphasis            | ![bar example with one bar emphasised](test/visual/__screenshots__/screenshots.spec.js/bar-emphasis.png)     |
+| [`flow`](#flow--stages-in-order)<br>ordered stages with explicit connectors                       | ![flow example](test/visual/__screenshots__/screenshots.spec.js/flow.png)                                    |
+| [`compare`](#compare--two-points-in-time)<br>two points in time, with the delta computed for you  | ![compare example](test/visual/__screenshots__/screenshots.spec.js/compare.png)                              |
+| [`venn`](#venn--when-the-overlap-is-the-point)<br>when the overlap between two sets is the point  | ![venn example](test/visual/__screenshots__/screenshots.spec.js/venn-default.png)                            |
+| [`pyramid`](#pyramid--a-hierarchy-narrowest-at-the-top)<br>a hierarchy, narrowest at the top      | ![pyramid example: Maslow's hierarchy of needs](test/visual/__screenshots__/screenshots.spec.js/pyramid.png) |
+| [pictogram marks](#pictogram-marks)<br>`waffle` and `bar` drawn as repeated silhouettes           | ![waffle drawn with person silhouettes](test/visual/__screenshots__/screenshots.spec.js/waffle-symbol.png)   |
 
 These images are the exact artifacts `npm run test:visual:docker` generates and verifies inside a
 pinned Docker container (see [CONTRIBUTING.md](CONTRIBUTING.md#visual-testing)) — not a
@@ -265,6 +266,51 @@ communicate better than one over-complicated one.
 | ------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------- |
 | ![venn overlap 0.05](test/visual/__screenshots__/screenshots.spec.js/venn-narrow.png) | ![venn overlap 0.35](test/visual/__screenshots__/screenshots.spec.js/venn-default.png) | ![venn overlap 0.55](test/visual/__screenshots__/screenshots.spec.js/venn-wide.png) |
 
+### `pyramid` — a hierarchy, narrowest at the top
+
+![pyramid example: Maslow's hierarchy of needs](test/visual/__screenshots__/screenshots.spec.js/pyramid.png)
+
+```html
+<div data-infograph="pyramid">
+  <ul>
+    <li>Self-actualization</li>
+    <li>Esteem</li>
+    <li>Love and belonging</li>
+    <li>Safety needs</li>
+    <li>Physiological needs</li>
+  </ul>
+</div>
+```
+
+First item is the apex, last is the base — the same order a reader already scans a list in.
+
+**Width states rank, not magnitude.** This is the same argument `venn` makes for area: the claim is
+topological ("this sits above that"), and there is no quantity being judged. A pyramid whose widths
+_did_ encode a value would be the trapezoid version of a pie chart — area grows faster than width,
+so a reader judging area misjudges the number. Give a tier a `data-value` and it's printed, with an
+advisory pointing at `bar` or `waffle` for a quantitative story instead:
+
+```html
+<div data-infograph="pyramid">
+  <ul>
+    <li>Enterprise: 400</li>
+    <li>Mid-market: 1,200</li>
+    <li>Self-serve: 8,600</li>
+  </ul>
+</div>
+```
+
+`data-level` children and the `data-items` shorthand also work, via the same attribute-reading chain
+every other form uses. `data-emphasis` highlights one tier, same rule as `bar`.
+
+| Attribute              | Meaning                                                      |
+| ---------------------- | ------------------------------------------------------------ |
+| `<li>` / `data-level`  | One tier's label, top to bottom                              |
+| `data-emphasis`        | Which tier to emphasise (1-based)                            |
+| `data-value` on a tier | Printed next to the label; never encoded in the tier's width |
+
+A pyramid stays readable for two to seven tiers — Maslow's own hierarchy is five.
+
 ### Pictogram marks
 
 `waffle` and `bar` can draw their marks as silhouettes instead of blocks. Add `data-ig-symbol`:
@@ -335,14 +381,15 @@ mask, so only the shape matters, never its colours:
 ></div>
 ```
 
-| `data-intent`   | Resolves to                        | Why                                           |
-| --------------- | ---------------------------------- | --------------------------------------------- |
-| `compare`       | `bar` (or `compare` for two items) | Length on a common baseline                   |
-| `part-of-whole` | `waffle`                           | A countable grid, not angle                   |
-| `change`        | `compare`                          | Two points in time, delta included            |
-| `flow`          | `flow`                             | Order with an explicit connector              |
-| `overlap`       | `venn`                             | The one case where area is actually the point |
-| `single`        | `stat`                             | It's text, not a figure                       |
+| `data-intent`   | Resolves to                        | Why                                            |
+| --------------- | ---------------------------------- | ---------------------------------------------- |
+| `compare`       | `bar` (or `compare` for two items) | Length on a common baseline                    |
+| `part-of-whole` | `waffle`                           | A countable grid, not angle                    |
+| `change`        | `compare`                          | Two points in time, delta included             |
+| `flow`          | `flow`                             | Order with an explicit connector               |
+| `overlap`       | `venn`                             | The one case where area is actually the point  |
+| `single`        | `stat`                             | It's text, not a figure                        |
+| `hierarchy`     | `pyramid`                          | Ranked levels, width states rank not magnitude |
 
 ---
 
