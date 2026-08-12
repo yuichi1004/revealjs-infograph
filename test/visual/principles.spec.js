@@ -19,7 +19,7 @@
  */
 
 import { test, expect } from '@playwright/test';
-import { VENN, centerDistance } from '../../src/design/tokens.js';
+import { VENN, centerDistance, CYCLE } from '../../src/design/tokens.js';
 import { CASES, caseById } from './cases.js';
 import { openFixture, stage, figureIn, measureContrast, listing } from './helpers.js';
 import {
@@ -725,6 +725,157 @@ test.describe('pyramid: width states rank, not magnitude', () => {
         (s) => `tier ${s.i}: off by ${s.offset.toFixed(1)}px`,
       )}`,
     ).toEqual([]);
+  });
+});
+
+/* ------------------------------------------------------------------ *
+ * cycle — a closed loop, drawn as real arcs
+ * ------------------------------------------------------------------ */
+
+/**
+ * Where cycle puts a stage, mirroring src/forms/cycle.js's own formula
+ * exactly — 0° at the top, increasing clockwise.
+ * @param {number} i
+ * @param {number} n
+ */
+function cycleAngle(i, n) {
+  return -90 + i * (360 / n);
+}
+
+/**
+ * A point on the ring, in CYCLE's own SVG user units.
+ * @param {number} deg
+ * @param {number} radius
+ */
+function cyclePoint(deg, radius) {
+  const rad = (deg * Math.PI) / 180;
+  return [CYCLE.centerX + radius * Math.cos(rad), CYCLE.centerY + radius * Math.sin(rad)];
+}
+
+/**
+ * A CYCLE user-unit coordinate as a fraction (0–1) of the whole canvas, for
+ * sampling against the full `.ig-cycle-svg` element.
+ * @param {number} x
+ * @param {number} y
+ */
+function cycleFraction(x, y) {
+  return [x / CYCLE.width, y / CYCLE.height];
+}
+
+test.describe('cycle: a closed loop, drawn as real arcs', () => {
+  const N = 4; // PDCA — see test/visual/cases.js.
+
+  test('nodes sit on a real circle, ordered clockwise from the top', async ({ page }) => {
+    const nodes = await page.evaluate(rectsOf, [stage('cycle'), '.ig-cycle-node']);
+    expect(nodes).toHaveLength(N);
+
+    const centre = (r) => [(r.left + r.right) / 2, (r.top + r.bottom) / 2];
+    const cx = nodes.reduce((s, n) => s + centre(n)[0], 0) / nodes.length;
+    const cy = nodes.reduce((s, n) => s + centre(n)[1], 0) / nodes.length;
+
+    const distances = nodes.map((n) => {
+      const [x, y] = centre(n);
+      return Math.hypot(x - cx, y - cy);
+    });
+    expect(
+      Math.max(...distances) - Math.min(...distances),
+      'nodes must be equidistant from the centre',
+    ).toBeLessThan(1);
+
+    // Angle from the centre, shifted so the top is 0 and increasing values
+    // move clockwise — the same convention src/forms/cycle.js computes with.
+    const angles = nodes.map((n) => {
+      const [x, y] = centre(n);
+      const raw = Math.atan2(y - cy, x - cx) * (180 / Math.PI);
+      return ((raw + 90) % 360) + (raw < -90 ? 360 : 0);
+    });
+
+    expect(angles[0], 'the first stage sits at the top').toBeLessThan(2);
+    for (let i = 1; i < angles.length; i++) {
+      expect(angles[i], `stage ${i} vs stage ${i - 1}`).toBeGreaterThan(angles[i - 1]);
+    }
+  });
+
+  test('a closed loop draws one arc per stage, not one fewer', async ({ page }) => {
+    // Unlike flow's open sequence (n - 1 connectors), the loop closes: the
+    // last stage's arc points back to the first.
+    const nodes = await page.evaluate(rectsOf, [stage('cycle'), '.ig-cycle-node']);
+    const arrows = await page.evaluate(rectsOf, [stage('cycle'), '.ig-cycle-arrow']);
+    expect(arrows).toHaveLength(nodes.length);
+  });
+
+  test('every connector is a real arc, not a straight chord', async ({ page }) => {
+    // The exact question the arcs-vs-chords design decision comes down to:
+    // sample the point where a true arc bows out to, and the point a straight
+    // line between the same two nodes would pass through instead. A regular
+    // polygon of straight connectors would paint the second point and miss
+    // the first; a real arc does the opposite.
+    for (let i = 0; i < N; i++) {
+      const start = cycleAngle(i, N);
+      const step = 360 / N;
+      const mid = start + step / 2;
+
+      const [arcX, arcY] = cyclePoint(mid, CYCLE.radius);
+      const [nodeIx, nodeIy] = cyclePoint(start, CYCLE.radius);
+      const [nodeJx, nodeJy] = cyclePoint(start + step, CYCLE.radius);
+      const chordX = (nodeIx + nodeJx) / 2;
+      const chordY = (nodeIy + nodeJy) / 2;
+
+      const [arcFx, arcFy] = cycleFraction(arcX, arcY);
+      const [chordFx, chordFy] = cycleFraction(chordX, chordY);
+
+      const onArc = await page.evaluate(elementAtFraction, [
+        `${stage('cycle')} .ig-cycle-svg`,
+        arcFx,
+        arcFy,
+      ]);
+      const onChord = await page.evaluate(elementAtFraction, [
+        `${stage('cycle')} .ig-cycle-svg`,
+        chordFx,
+        chordFy,
+      ]);
+
+      expect(onArc?.classes, `arc ${i}: its true midpoint must be painted`).toContain(
+        'ig-cycle-arrow',
+      );
+      expect(
+        onChord?.classes,
+        `arc ${i}: the straight-chord midpoint must not be painted — that would be a polygon, not a ring`,
+      ).not.toContain('ig-cycle-arrow');
+    }
+  });
+
+  test('each label sits along its own node’s angle, outside the ring', async ({ page }) => {
+    const nodes = await page.evaluate(rectsOf, [stage('cycle'), '.ig-cycle-node']);
+    const labels = await page.evaluate(rectsOf, [stage('cycle'), '.ig-cycle-label']);
+    expect(labels).toHaveLength(nodes.length);
+
+    const centre = (r) => [(r.left + r.right) / 2, (r.top + r.bottom) / 2];
+    const cx = nodes.reduce((s, n) => s + centre(n)[0], 0) / nodes.length;
+    const cy = nodes.reduce((s, n) => s + centre(n)[1], 0) / nodes.length;
+    const angleOf = (r) => {
+      const [x, y] = centre(r);
+      return Math.atan2(y - cy, x - cx);
+    };
+
+    for (let i = 0; i < nodes.length; i++) {
+      const nodeAngle = angleOf(nodes[i]);
+      const labelAngle = angleOf(labels[i]);
+      // Wrap-safe angular difference, via the angle between the two unit
+      // vectors rather than a naive subtraction.
+      const diff = Math.abs(
+        Math.atan2(Math.sin(nodeAngle - labelAngle), Math.cos(nodeAngle - labelAngle)),
+      );
+      expect(diff, `label ${i} vs node ${i}, radians off`).toBeLessThan(0.05);
+
+      // …and genuinely outside the ring, not sitting on top of its node.
+      const [nx, ny] = centre(nodes[i]);
+      const [lx, ly] = centre(labels[i]);
+      expect(
+        Math.hypot(lx - cx, ly - cy),
+        `label ${i} must be further from the centre than its node`,
+      ).toBeGreaterThan(Math.hypot(nx - cx, ny - cy));
+    }
   });
 });
 

@@ -387,6 +387,116 @@ describe('pyramid', () => {
   });
 });
 
+describe('cycle', () => {
+  const pdca = `<div data-infograph="cycle"><ul>
+    <li>Plan</li>
+    <li>Do</li>
+    <li>Check</li>
+    <li>Act</li>
+  </ul></div>`;
+
+  it('reads stages in order, one node and one arrow per stage', () => {
+    const figure = render(pdca);
+    expect(all(figure, '.ig-cycle-node')).toHaveLength(4);
+    // A closed loop draws n arrows, not n - 1 — the last one closes back to
+    // the first, unlike flow's straight sequence.
+    expect(all(figure, '.ig-cycle-arrow')).toHaveLength(4);
+  });
+
+  it('places the first stage at the top of the ring', () => {
+    const figure = render(pdca);
+    const [first] = all(figure, '.ig-cycle-node');
+    const cx = Number(first.getAttribute('cx'));
+    const cy = Number(first.getAttribute('cy'));
+    // Top of a centred ring: same x as the centre, smaller y (SVG y grows
+    // downward).
+    expect(cx).toBeCloseTo(170, 0);
+    expect(cy).toBeLessThan(170);
+  });
+
+  it('places every node the same distance from the centre', () => {
+    const figure = render(pdca);
+    const distances = all(figure, '.ig-cycle-node').map((el) => {
+      const cx = Number(el.getAttribute('cx'));
+      const cy = Number(el.getAttribute('cy'));
+      return Math.hypot(cx - 170, cy - 170);
+    });
+    for (const d of distances) expect(d).toBeCloseTo(distances[0], 5);
+  });
+
+  it('gives every node the same fill when nothing is emphasised', () => {
+    const figure = render(pdca);
+    const fills = all(figure, '.ig-cycle-node').map((el) =>
+      /** @type {HTMLElement} */ (el).style.getPropertyValue('--ig-cycle-fill'),
+    );
+    expect(new Set(fills).size).toBe(1);
+  });
+
+  it('grays every node but the emphasised one', () => {
+    const figure = render(
+      pdca.replace('data-infograph="cycle"', 'data-infograph="cycle" data-emphasis="2"'),
+    );
+    const fills = all(figure, '.ig-cycle-node').map((el) =>
+      /** @type {HTMLElement} */ (el).style.getPropertyValue('--ig-cycle-fill'),
+    );
+    expect(fills[1]).toBe('var(--ig-mark-1)');
+    expect(fills.filter((f, i) => i !== 1).every((f) => f === 'var(--ig-muted)')).toBe(true);
+  });
+
+  it('bolds the emphasised label too', () => {
+    const figure = render(
+      pdca.replace('data-infograph="cycle"', 'data-infograph="cycle" data-emphasis="2"'),
+    );
+    expect(all(figure, '.ig-cycle-label')[1].classList.contains('ig-cycle-label-on')).toBe(true);
+  });
+
+  it('reads data-stage children the same way <li> works', () => {
+    const figure = render(`<div data-infograph="cycle">
+      <div data-stage="Push"></div>
+      <div data-stage="Pull"></div>
+    </div>`);
+    expect(all(figure, '.ig-cycle-node')).toHaveLength(2);
+  });
+
+  it('reads the data-items shorthand too', () => {
+    const figure = render('<div data-infograph="cycle" data-items="A, B, C"></div>');
+    expect(all(figure, '.ig-cycle-node')).toHaveLength(3);
+  });
+
+  it('advises below two stages', () => {
+    render('<div data-infograph="cycle"><ul><li>Only one</li></ul></div>');
+    expect(warnings().join()).toMatch(/at least two stages/);
+  });
+
+  it('advises past eight stages', () => {
+    const items = Array.from({ length: 9 }, (_, i) => `<li>Stage ${i}</li>`).join('');
+    render(`<div data-infograph="cycle"><ul>${items}</ul></div>`);
+    expect(warnings().join()).toMatch(/more than 8/);
+  });
+
+  it('hides the ring from assistive tech and keeps the labels', () => {
+    const figure = render(pdca);
+    expect(figure.querySelector('.ig-cycle-svg')?.getAttribute('aria-hidden')).toBe('true');
+    expect(figure.querySelector('.ig-cycle-label')?.closest('[aria-hidden="true"]')).toBeNull();
+  });
+
+  it('carries no hidden table — the labels are already text, in order', () => {
+    expect(render(pdca).querySelector('table')).toBeNull();
+  });
+
+  it('states the closure explicitly in the accessible name', () => {
+    // Plain reading order doesn't convey that the last stage leads back to
+    // the first; the derived name says so directly.
+    expect(render(pdca).getAttribute('aria-label')).toBe('Plan → Do → Check → Act → Plan');
+  });
+
+  it('gives every figure its own marker id, so two on one page do not collide', () => {
+    const a = render(pdca).querySelector('marker')?.id;
+    const b = render(pdca).querySelector('marker')?.id;
+    expect(a).not.toBe(b);
+  });
+});
+
 /*
  * Pictogram marks.
  *
@@ -572,6 +682,7 @@ describe('registry', () => {
     expect(formNames().sort()).toEqual([
       'bar',
       'compare',
+      'cycle',
       'flow',
       'pyramid',
       'stat',
