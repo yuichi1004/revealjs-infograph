@@ -203,7 +203,13 @@
         <!-- ------------------------------------------------ quadrant -->
         <section class="center">
           <p class="kicker">QUADRANT — four labelled buckets</p>
-          <div data-infograph="quadrant" data-x-label="Urgent" data-y-label="Important">
+          <div
+            data-infograph="quadrant"
+            data-x-label="Urgency"
+            data-columns="Urgent, Not urgent"
+            data-y-label="Importance"
+            data-rows="Important, Not important"
+          >
             <div data-label="Do First">
               <ul>
                 <li>Fix production bug</li>
@@ -227,12 +233,14 @@
             </div>
           </div>
           <pre class="src"><code>&lt;div data-infograph="quadrant"
-     data-x-label="Urgent" data-y-label="Important"&gt;
+     data-x-label="Urgency"    data-columns="Urgent, Not urgent"
+     data-y-label="Importance" data-rows="Important, Not important"&gt;
   &lt;div data-label="Do First"&gt;&lt;ul&gt;…&lt;/ul&gt;&lt;/div&gt;
   …
 &lt;/div&gt;</code></pre>
           <p class="subtle small">
-            Not a scatter plot — four buckets, not items placed at a computed (x, y).
+            Both ends of each axis are named — an axis label alone says what is measured, never
+            which way it grows.
           </p>
         </section>
 

@@ -498,12 +498,18 @@ describe('cycle', () => {
 });
 
 describe('quadrant', () => {
-  const eisenhower = `<div data-infograph="quadrant" data-x-label="Urgent" data-y-label="Important">
+  const cells = `
     <div data-label="Do First"><ul><li>Fix production bug</li><li>Client deadline today</li></ul></div>
     <div data-label="Schedule"><ul><li>Plan Q3 roadmap</li></ul></div>
     <div data-label="Delegate"><ul><li>Answer routine emails</li></ul></div>
-    <div data-label="Eliminate"><ul><li>Check social media</li></ul></div>
-  </div>`;
+    <div data-label="Eliminate"><ul><li>Check social media</li></ul></div>`;
+
+  const eisenhower = `<div data-infograph="quadrant"
+    data-x-label="Urgency" data-columns="Urgent, Not urgent"
+    data-y-label="Importance" data-rows="Important, Not important">${cells}</div>`;
+
+  /** The same figure as it was authored before axis ends could be named. */
+  const unheaded = `<div data-infograph="quadrant" data-x-label="Urgent" data-y-label="Important">${cells}</div>`;
 
   it('reads four cells in document order, top-left through bottom-right', () => {
     const figure = render(eisenhower);
@@ -606,9 +612,98 @@ describe('quadrant', () => {
   });
 
   it('states both axes and all four titles in the accessible name', () => {
+    // The parenthesised ends are the point: an axis name alone says what is
+    // measured, never which way it grows, and position is exactly what a
+    // screen-reader user cannot see.
     expect(render(eisenhower).getAttribute('aria-label')).toBe(
-      'Urgent vs. Important: Do First, Schedule, Delegate, Eliminate',
+      'Urgency (Urgent / Not urgent) vs. Importance (Important / Not important): ' +
+        'Do First, Schedule, Delegate, Eliminate',
     );
+  });
+
+  describe('axis ends', () => {
+    it('names the columns left to right and the rows top to bottom', () => {
+      const figure = render(eisenhower);
+      expect(all(figure, '.ig-quadrant-col-header').map((el) => el.textContent)).toEqual([
+        'Urgent',
+        'Not urgent',
+      ]);
+      expect(all(figure, '.ig-quadrant-row-header').map((el) => el.textContent)).toEqual([
+        'Important',
+        'Not important',
+      ]);
+    });
+
+    it('lays the grid out in reading order, headers included', () => {
+      // Row-major DOM order is what lets the grid auto-place with no explicit
+      // positioning, and it is also what a screen reader hears linearly: the
+      // column names, then each row's name followed by its own two cells.
+      const grid = render(eisenhower).querySelector('.ig-quadrant-grid');
+      expect([...grid.children].map((c) => c.className)).toEqual([
+        'ig-quadrant-corner',
+        'ig-quadrant-col-header',
+        'ig-quadrant-col-header',
+        'ig-quadrant-row-header',
+        'ig-quadrant-cell',
+        'ig-quadrant-cell',
+        'ig-quadrant-row-header',
+        'ig-quadrant-cell',
+        'ig-quadrant-cell',
+      ]);
+    });
+
+    it('heads only the columns when only columns are named', () => {
+      const grid = render(
+        `<div data-infograph="quadrant" data-columns="Urgent, Not urgent">${cells}</div>`,
+      ).querySelector('.ig-quadrant-grid');
+      // No corner: with one axis headed the grid is 2 columns wide, and a
+      // spacer would push everything one cell out of place.
+      expect(grid.querySelector('.ig-quadrant-corner')).toBeNull();
+      expect(grid.classList.contains('ig-quadrant-grid-col-headed')).toBe(true);
+      expect(grid.classList.contains('ig-quadrant-grid-row-headed')).toBe(false);
+    });
+
+    it('heads only the rows when only rows are named', () => {
+      const grid = render(
+        `<div data-infograph="quadrant" data-rows="Important, Not important">${cells}</div>`,
+      ).querySelector('.ig-quadrant-grid');
+      expect(grid.querySelector('.ig-quadrant-corner')).toBeNull();
+      expect(grid.classList.contains('ig-quadrant-grid-row-headed')).toBe(true);
+      expect(grid.classList.contains('ig-quadrant-grid-col-headed')).toBe(false);
+    });
+
+    it('leaves a figure with no named ends exactly as it was', () => {
+      // Axis ends are additive: a deck written before they existed keeps its
+      // markup, its four bare cells, and its accessible name.
+      const figure = render(unheaded);
+      expect(all(figure, '.ig-quadrant-col-header')).toHaveLength(0);
+      expect(all(figure, '.ig-quadrant-row-header')).toHaveLength(0);
+      expect(figure.querySelector('.ig-quadrant-grid').children).toHaveLength(4);
+      expect(figure.getAttribute('aria-label')).toBe(
+        'Urgent vs. Important: Do First, Schedule, Delegate, Eliminate',
+      );
+    });
+
+    it('names the ends without a dimension name too', () => {
+      const figure = render(
+        `<div data-infograph="quadrant" data-columns="Urgent, Not urgent">${cells}</div>`,
+      );
+      expect(figure.getAttribute('aria-label')).toBe(
+        '(Urgent / Not urgent): Do First, Schedule, Delegate, Eliminate',
+      );
+    });
+
+    it('keeps a colon inside an end label instead of splitting on it', () => {
+      // parseItemList() would read "Q1: strong" as label "Q1" with a value —
+      // these are plain strings, so they get their own splitter.
+      const figure = render(
+        `<div data-infograph="quadrant" data-columns="Q1: strong, Q4: weak">${cells}</div>`,
+      );
+      expect(all(figure, '.ig-quadrant-col-header').map((el) => el.textContent)).toEqual([
+        'Q1: strong',
+        'Q4: weak',
+      ]);
+    });
   });
 });
 

@@ -1,7 +1,9 @@
 /**
  * quadrant — four named buckets on two axes, Eisenhower-matrix style.
  *
- *   <div data-infograph="quadrant" data-x-label="Urgent" data-y-label="Important">
+ *   <div data-infograph="quadrant"
+ *        data-x-label="Urgency"    data-columns="Urgent, Not urgent"
+ *        data-y-label="Importance" data-rows="Important, Not important">
  *     <div data-label="Do First">
  *       <ul>
  *         <li>Fix production bug</li>
@@ -16,6 +18,20 @@
  * Four children, in row-major reading order — top-left, top-right, bottom-left,
  * bottom-right — the same "just write it in order" convention `bar`, `pyramid`
  * and `cycle` all use rather than a position-identifying attribute.
+ *
+ * **Both ends of each axis get a name.** An axis label alone says only *what* is
+ * measured, never *which way* it grows, and a reader is left to reverse-engineer
+ * the direction from the cell titles. In the Eisenhower matrix they will usually
+ * get it wrong: urgency increases leftward and importance upward, the opposite
+ * of the "right and up mean more" convention every other chart teaches. So
+ * `data-columns` names the left and right columns and `data-rows` names the top
+ * and bottom rows, which puts the direction in text where assistive tech gets it
+ * for free.
+ *
+ * No arrow, deliberately. A quadrant's axes are *binary* — four buckets is two
+ * levels by two levels — so an arrow would imply a continuum the form does not
+ * have, and would put the direction back into geometry, which is the problem it
+ * was meant to solve.
  *
  * This is not a scatter plot: no item is placed at a computed (x, y). Each
  * quadrant is a bucket, and which bucket an item is in is the entire claim —
@@ -39,6 +55,24 @@ import { advise } from '../warn.js';
 /** A quadrant is for narrowing down what to focus on; a cell with more items
  * than this has stopped doing that job. */
 const MAX_ITEMS_PER_CELL = 6;
+
+/**
+ * Split an axis's two end labels out of one attribute.
+ *
+ * Deliberately not `parseItemList()`: that one also splits on `:` to pull out a
+ * value, which would quietly turn a header like "Q1: strong" into the label
+ * "Q1". These are plain strings, not `label: value` pairs.
+ *
+ * @param {string|undefined} raw
+ * @returns {string[]}
+ */
+function poles(raw) {
+  if (!raw) return [];
+  return raw
+    .split(/[,、]/)
+    .map((part) => part.trim())
+    .filter(Boolean);
+}
 
 /** @type {import('./index.js').Form} */
 export default function quadrant({ host }) {
@@ -106,19 +140,68 @@ export default function quadrant({ host }) {
     ),
   );
 
+  const columns = poles(data.columns);
+  const rows = poles(data.rows);
+
+  /*
+   * Headers go into the same grid as the cells, in reading order, so the grid
+   * fills row-major with no explicit positioning:
+   *
+   *   (corner)   Urgent      Not urgent
+   *   Important  Do First    Schedule
+   *   Not imp.   Delegate    Eliminate
+   *
+   * The corner spacer only exists when both axes are headed — that is what
+   * keeps auto-placement correct across all four combinations (both, columns
+   * only, rows only, neither) without a single grid-column declaration.
+   */
+  const gridChildren = [];
+  if (columns.length) {
+    if (rows.length) gridChildren.push(el('div', { class: cls('quadrant-corner') }));
+    for (const name of columns) {
+      gridChildren.push(el('p', { class: cls('quadrant-col-header'), text: name }));
+    }
+  }
+  cellNodes.forEach((node, i) => {
+    // A row header leads its own row: index 0 before the first cell, index 1
+    // before the third.
+    if (rows.length && i % 2 === 0) {
+      const name = rows[i / 2];
+      if (name) gridChildren.push(el('p', { class: cls('quadrant-row-header'), text: name }));
+    }
+    gridChildren.push(node);
+  });
+
   const visual = el(
     'div',
     { class: cls('quadrant') },
     data.xLabel ? el('p', { class: cls('quadrant-x-label'), text: data.xLabel }) : null,
     data.yLabel ? el('p', { class: cls('quadrant-y-label'), text: data.yLabel }) : null,
-    el('div', { class: cls('quadrant-grid') }, ...cellNodes),
+    el(
+      'div',
+      {
+        class: [
+          cls('quadrant-grid'),
+          columns.length ? cls('quadrant-grid', 'col-headed') : '',
+          rows.length ? cls('quadrant-grid', 'row-headed') : '',
+        ],
+      },
+      ...gridChildren,
+    ),
   );
 
   // States both axes and all four titles up front, the same "say what the
   // sighted layout shows" move cycle's closure-naming makes — giving an
   // overview before a reader drills into each cell's own (already-visible)
   // item list.
-  const axes = [data.xLabel, data.yLabel].filter(Boolean).join(' vs. ');
+  //
+  // The poles go in parentheses after their dimension, because the direction is
+  // the thing a reader cannot recover from position alone. With no poles given
+  // this degrades to exactly the string it produced before they existed.
+  const axis = (/** @type {string|undefined} */ name, /** @type {string[]} */ ends) =>
+    ends.length ? `${name ? `${name} ` : ''}(${ends.join(' / ')})`.trim() : (name ?? '');
+
+  const axes = [axis(data.xLabel, columns), axis(data.yLabel, rows)].filter(Boolean).join(' vs. ');
   const titles = cells
     .map((cell) => cell.label)
     .filter(Boolean)
