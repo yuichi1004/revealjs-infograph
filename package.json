@@ -5,6 +5,14 @@
   "type": "module",
   "license": "MIT",
   "author": "Yuichi Murata",
+  "homepage": "https://yuichi1004.github.io/revealjs-infograph/",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/yuichi1004/revealjs-infograph.git"
+  },
+  "bugs": {
+    "url": "https://github.com/yuichi1004/revealjs-infograph/issues"
+  },
   "keywords": [
     "reveal.js",
     "reveal.js-plugin",
