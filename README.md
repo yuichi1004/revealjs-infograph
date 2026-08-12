@@ -217,6 +217,12 @@ An arrow always sits between stages. Boxes in a row read as a "group" by proximi
 something has to state direction explicitly. Add `data-ig-fragment="steps"` to reveal one stage at
 a time as a reveal.js fragment.
 
+| Attribute                  | Meaning                                         |
+| -------------------------- | ----------------------------------------------- |
+| `<div>` / `data-step`      | One stage's label, in order                     |
+| `data-icon` on a stage     | See [Icons](#icons) below                       |
+| `data-ig-fragment="steps"` | Reveal one stage at a time as a reveal fragment |
+
 ### `compare` — two points in time
 
 ![compare example](test/visual/__screenshots__/screenshots.spec.js/compare.png)
@@ -310,6 +316,7 @@ every other form uses. `data-emphasis` highlights one tier, same rule as `bar`.
 | `<li>` / `data-level`  | One tier's label, top to bottom                              |
 | `data-emphasis`        | Which tier to emphasise (1-based)                            |
 | `data-value` on a tier | Printed next to the label; never encoded in the tier's width |
+| `data-icon` on a tier  | See [Icons](#icons) below                                    |
 
 A pyramid stays readable for two to seven tiers — Maslow's own hierarchy is five.
 
@@ -338,10 +345,11 @@ The connectors are real arcs along the ring, not straight lines between stages �
 between four stages trace a rhombus, not a circle. Connectors are chrome, not a mark: they stay one
 neutral colour regardless of `data-emphasis`, the same rule `flow`'s arrows already follow.
 
-| Attribute             | Meaning                                     |
-| --------------------- | ------------------------------------------- |
-| `<li>` / `data-stage` | One stage's label, in order around the ring |
-| `data-emphasis`       | Which stage to emphasise (1-based)          |
+| Attribute              | Meaning                                     |
+| ---------------------- | ------------------------------------------- |
+| `<li>` / `data-stage`  | One stage's label, in order around the ring |
+| `data-emphasis`        | Which stage to emphasise (1-based)          |
+| `data-icon` on a stage | See [Icons](#icons) below                   |
 
 A cycle stays readable for two to eight stages.
 
@@ -408,6 +416,7 @@ position relative to the axis labels, and that meaning would be invisible to ass
 | `data-label` on a cell          | That cell's title                              |
 | `<li>` / `data-item` in a cell  | One task in that cell                          |
 | `data-emphasis`                 | Which cell to emphasise (1-based)              |
+| `data-icon` on a cell           | See [Icons](#icons) below                      |
 
 Both halves earn their place: a BCG matrix wants `data-x-label="Market share"` _and_
 `data-columns="High, Low"` — "High / Low" alone says nothing about what is high, and "Market share"
@@ -474,6 +483,61 @@ mask, so only the shape matters, never its colours:
 ```html
 <div data-infograph="waffle" data-value="62%" data-ig-symbol-path="M12 2 2 22h20z"></div>
 ```
+
+### Icons
+
+`flow`, `pyramid`, `cycle` and `quadrant` can attach an icon to each of their elements —
+a stage, a tier, a stage on the ring, a cell — with `data-icon`:
+
+![flow drawn with an icon on every step](test/visual/__screenshots__/screenshots.spec.js/flow-icons.png)
+
+```html
+<div data-infograph="flow">
+  <div data-step="Problem" data-icon="alert">Fragmented teams</div>
+  <div data-step="Intervention" data-icon="gear">Culture integration</div>
+  <div data-step="Result" data-icon="check">66% shorter lead time</div>
+</div>
+```
+
+**This is not `data-ig-symbol`, and the two solve different problems.** A symbol is a _mark_,
+repeated once per unit, so its count carries a quantity — that is the whole subject of
+[Pictogram marks](#pictogram-marks) above. An icon here carries no quantity: it sits exactly once,
+next to the one label it names, and it never varies in size. It restates an identity the visible
+text already states, the same way a diagram in a textbook sits an icon beside a caption rather than
+scaling the icon to match the caption's importance. The moment an icon's size tracked a value it
+would become the same area-judgement failure `data-ig-symbol` is built to avoid — so nothing here
+lets that happen. See
+[docs/principles.md §5c](docs/principles.md#5c-an-icon-names-it-never-measures).
+
+Three notations, most explicit wins:
+
+```html
+<!-- A built-in name. -->
+<div data-step="Plan" data-icon="clock"></div>
+
+<!-- Your own solid silhouette, drawn on a 24×24 grid. -->
+<div data-step="Plan" data-icon-path="M12 2 2 22h20z"></div>
+
+<!-- Or bring an icon set's own glyph, stroked or filled, pasted in unchanged. -->
+<div data-step="Plan">
+  <svg data-icon viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+    <circle cx="12" cy="12" r="9" />
+  </svg>
+</div>
+```
+
+| Attribute         | Meaning                                                                                                                         |
+| ----------------- | ------------------------------------------------------------------------------------------------------------------------------- |
+| `data-icon`       | One of `check` `flag` `clock` `target` `alert` `lightbulb` `gear` `document`, plus the [pictogram mark](#pictogram-marks) names |
+| `data-icon-path`  | Your own solid silhouette instead — an SVG path drawn on a 24×24 grid                                                           |
+| `<svg data-icon>` | An inline SVG child — the escape hatch for a stroked icon set                                                                   |
+
+An icon needs its own element's visible label, or it says nothing to a screen reader — icons are
+`aria-hidden`, same as every other purely graphical mark this package draws. An icon on an
+otherwise-unlabelled stage, tier or cell advises; so does icon-ing some elements in a figure and not
+others, since a lone icon among plain siblings reads as `data-emphasis` rather than as a deliberate
+style choice. There is deliberately no deck-wide `data-icon` default — unlike a mark, which
+legitimately serves a whole deck, the same icon on every element of every figure would name nothing.
 
 ### `auto` — let intent choose the form
 

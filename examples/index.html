@@ -97,9 +97,9 @@
         <section class="center">
           <p class="kicker">FLOW — stages in order</p>
           <div data-infograph="flow" data-ig-fragment="steps">
-            <div data-step="Problem">Fragmented teams</div>
-            <div data-step="Intervention">Culture integration</div>
-            <div data-step="Result">66% shorter lead time</div>
+            <div data-step="Problem" data-icon="alert">Fragmented teams</div>
+            <div data-step="Intervention" data-icon="gear">Culture integration</div>
+            <div data-step="Result" data-icon="check">66% shorter lead time</div>
           </div>
           <p class="subtle small">
             <code>data-ig-fragment="steps"</code> presents one stage at a time (press → to advance)
@@ -210,23 +210,23 @@
             data-y-label="Importance"
             data-rows="Important, Not important"
           >
-            <div data-label="Do First">
+            <div data-label="Do First" data-icon="alert">
               <ul>
                 <li>Fix production bug</li>
                 <li>Client deadline today</li>
               </ul>
             </div>
-            <div data-label="Schedule">
+            <div data-label="Schedule" data-icon="clock">
               <ul>
                 <li>Plan Q3 roadmap</li>
               </ul>
             </div>
-            <div data-label="Delegate">
+            <div data-label="Delegate" data-icon="flag">
               <ul>
                 <li>Answer routine emails</li>
               </ul>
             </div>
-            <div data-label="Eliminate">
+            <div data-label="Eliminate" data-icon="target">
               <ul>
                 <li>Check social media</li>
               </ul>
@@ -235,7 +235,7 @@
           <pre class="src"><code>&lt;div data-infograph="quadrant"
      data-x-label="Urgency"    data-columns="Urgent, Not urgent"
      data-y-label="Importance" data-rows="Important, Not important"&gt;
-  &lt;div data-label="Do First"&gt;&lt;ul&gt;…&lt;/ul&gt;&lt;/div&gt;
+  &lt;div data-label="Do First" data-icon="alert"&gt;&lt;ul&gt;…&lt;/ul&gt;&lt;/div&gt;
   …
 &lt;/div&gt;</code></pre>
           <p class="subtle small">

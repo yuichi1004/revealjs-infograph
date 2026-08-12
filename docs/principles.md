@@ -210,14 +210,55 @@ values" on the same terms. On top of that: glyph count equals value ÷ unit, eve
 glyph is the same size, and the partial is a full-size glyph inside a narrow clipper.
 
 The decoration probe (`decorationIn` in `test/visual/probes.js`) treats `mask-image` as decoration
-**except** on the two mark classes, and asserts it appears nowhere else — so the exemption cannot
-quietly spread to a container or a label.
+**except** on the mark classes it names explicitly, and asserts it appears nowhere else — so the
+exemption cannot quietly spread to a container or a label. §5c below adds one more class to that
+list, for a different and equally deliberate reason.
 
 > A defect this caught: the glyph inside a partial clipper is not a flex item, so it stayed
 > `display: inline`, ignored its width and rendered at zero. The clipper's own width was still
 > correct, so the bar's length stayed exactly proportional and every existing assertion passed —
 > the fractional symbol was simply an empty gap. Only an assertion that measured the glyph itself
 > could see it.
+
+## 5c. An icon names, it never measures
+
+`flow`, `pyramid`, `cycle` and `quadrant` can attach an icon to each of their elements —
+`data-icon="check"`, `data-icon-path="M…"` for a custom silhouette, or an inline `<svg data-icon>`
+for a stroked icon-set glyph pasted in unchanged. That is a second use of the mask mechanism §5b
+just established rules for, and it needs its own rule to stay legitimate:
+
+> An icon names, it never measures.
+
+`data-ig-symbol` is a _mark_: repeated once per unit, so its **count** is the data, and §5b's "a
+sign is repeated, never enlarged" is what keeps that count from being misread as an area. An icon
+here carries no quantity at all — it is placed exactly once, next to the one label it names, and it
+never varies in size. It restates an identity the visible text already states (the dual-coding
+case), not a chart channel a reader has to decode. The moment an icon's size tracked a value it
+would become exactly the area-judgement failure §5b forbids for marks, so nothing in this feature
+exposes a way to do that.
+
+Three constraints fall out, each one enforced rather than left as a suggestion:
+
+| Constraint                                                                                                                            | Enforced by                                                               |
+| ------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------- |
+| **Fixed size** — every icon in one figure is the same size                                                                            | `--ig-icon-size` set once per form in `styles/infograph.css`; visual test |
+| **Never alone** — an icon needs its own element's visible label, or it says nothing to a screen reader (icons are `aria-hidden`)      | `checkIcons()` in `src/icon.js`, called by each of the four forms         |
+| **All or nothing** — a lone icon among plain siblings competes with `data-emphasis` for the one signalling channel principle 4 allows | same `checkIcons()`                                                       |
+
+| Implementation                                                                                            | Where                        |
+| --------------------------------------------------------------------------------------------------------- | ---------------------------- |
+| Painted as a mask over the element's own background — same mechanism as §5b's marks                       | `src/icon.js`, `.ig-icon`    |
+| The bring-your-own-`<svg>` escape hatch is cloned, not moved, so the author's markup survives a re-render | `iconFor()` in `src/icon.js` |
+| Icons share one shape registry with `data-ig-symbol` marks — same lookup, different use                   | `src/design/symbols.js`      |
+
+**Visual verification** (`test.describe('icons: an icon names, it never measures')` in
+`test/visual/principles.spec.js`): every icon in a figure is nearer, by centre-to-centre distance,
+to its own element's label than to any other element's — the one test a mis-wired icon slot
+actually fails; every icon in a figure is the same size, within a pixel; every icon paints at a
+non-zero size (catching a stroke-only path masked into nothing, the icon-shaped repeat of the
+partial-glyph defect above); and no icon overlaps the text it sits beside. The decoration probe's
+mark-class allowlist gains `ig-icon` alongside `ig-waffle-cell` and `ig-bar-glyph`, so the exemption
+stays exactly as narrow as §5b's — one class, reviewably added, never "wherever a mask shows up."
 
 ## 6. Progressive disclosure — let the pace match the audience
 
