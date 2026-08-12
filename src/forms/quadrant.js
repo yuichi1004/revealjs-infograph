@@ -50,6 +50,7 @@
 import { el, cls } from '../dom.js';
 import { figure } from '../a11y.js';
 import { readItems } from '../parse.js';
+import { iconFor, checkIcons } from '../icon.js';
 import { advise } from '../warn.js';
 
 /** A quadrant is for narrowing down what to focus on; a cell with more items
@@ -111,7 +112,13 @@ export default function quadrant({ host }) {
       );
     }
 
-    return { label, items, emphasis: 'emphasis' in cellData };
+    return {
+      label,
+      items,
+      emphasis: 'emphasis' in cellData,
+      icon: iconFor(cellHost),
+      source: cellHost,
+    };
   });
 
   const anyEmphasis = cells.some((cell) => cell.emphasis);
@@ -120,14 +127,22 @@ export default function quadrant({ host }) {
     if (Number.isFinite(index) && cells[index - 1]) cells[index - 1].emphasis = true;
   }
 
-  const cellNodes = cells.map((cell, i) =>
-    el(
+  checkIcons(cells, host, 'quadrant cell');
+
+  const cellNodes = cells.map((cell, i) => {
+    // A head row only exists when there is an icon to put in it — with none,
+    // the title stays the same lone <p> this form has always emitted, so a
+    // plain quadrant's markup (and baseline screenshot) does not move at all.
+    const title = cell.label ? el('p', { class: cls('quadrant-title'), text: cell.label }) : null;
+    const head = cell.icon ? el('div', { class: cls('quadrant-head') }, cell.icon, title) : title;
+
+    return el(
       'div',
       {
         class: [cls('quadrant-cell'), cell.emphasis ? cls('quadrant-cell', 'on') : ''],
         style: { '--ig-i': i },
       },
-      cell.label ? el('p', { class: cls('quadrant-title'), text: cell.label }) : null,
+      head,
       cell.items.length
         ? el(
             'ul',
@@ -137,8 +152,8 @@ export default function quadrant({ host }) {
             ),
           )
         : null,
-    ),
-  );
+    );
+  });
 
   const columns = poles(data.columns);
   const rows = poles(data.rows);

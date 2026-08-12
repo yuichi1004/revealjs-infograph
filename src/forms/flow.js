@@ -28,6 +28,7 @@
 import { el, cls } from '../dom.js';
 import { figure, hideFromAt } from '../a11y.js';
 import { readItems } from '../parse.js';
+import { checkIcons } from '../icon.js';
 import { advise } from '../warn.js';
 
 /** @type {import('./index.js').Form} */
@@ -42,6 +43,8 @@ export default function flow({ host, config }) {
       hint: 'A single stage is not a sequence — a stat or a plain sentence says it with less furniture.',
     });
   }
+
+  checkIcons(items, host, 'flow step');
 
   /** @type {Element[]} */
   const nodes = [];
@@ -80,6 +83,7 @@ export default function flow({ host, config }) {
             'data-fragment-index': fragment ? i : null,
           },
         },
+        item.icon,
         item.label ? el('div', { class: cls('flow-step-label'), text: item.label }) : null,
         item.note ? el('div', { class: cls('flow-step-body'), text: item.note }) : null,
       ),
