@@ -111,11 +111,34 @@ optional decoration; a cell without one advises, because without a title the _on
 that cell represents is inferring it from position, which is precisely the failure mode direct
 labelling exists to rule out everywhere else in this package.
 
+**The axes need the same treatment one level up, and originally didn't get it.** Naming a cell fixes
+the cell; it does nothing for the axes it sits between. The first version of this form rendered
+"URGENT" and "IMPORTANT" — the _names_ of the two dimensions — and nothing at all about **which end
+is more**, so the direction lived purely in position. Worse, in the Eisenhower matrix the answer is
+the reverse of the convention every other chart teaches: urgency increases leftward, importance
+upward. A reader applying the usual "right and up mean more" habit read the figure backwards with no
+cue that they had, and the accessible name (`"Urgent vs. Important: …"`) carried no direction either.
+
+So both ends of each axis get named — `data-columns` for the left and right columns, `data-rows` for
+the top and bottom — which is what real Eisenhower matrices do and what puts the direction into text.
+An arrow was considered and rejected: a quadrant's axes are _binary_ (four buckets is two levels by
+two levels), so an arrow would assert a continuum the form does not have, and would leave the
+direction in geometry, which is the whole defect.
+
 **Visual verification**: the four cells are equal-sized and share the grid's row and column edges
 in the order they were authored in — top-left, top-right, bottom-left, bottom-right — so a CSS
 regression that silently reordered the grid (column-major instead of row-major, say) is caught by
 position, not just by cell count. Each cell's title sits above its own item list, never another
 cell's, and the axis labels sit outside the 2×2 block rather than overlapping it.
+
+For the axis ends the guarantee is composed from two layers, because neither is sufficient alone:
+the unit suite proves the authored order becomes the DOM order, and the visual suite proves each
+header is physically centred on the column or row it names and sits outside the cells. Together they
+give "first authored name appears leftmost/topmost". Note what the visual test does _not_ catch —
+reversing `data-columns` is a legitimate input (an author may genuinely want the other arrangement),
+not a defect, so the layout follows it faithfully. What it does catch is the layout drifting away
+from the markup: dropping the corner spacer that row-major auto-placement depends on shifts every
+header off its column, and fails by name.
 
 ## 4. Signalling — exactly one emphasis
 

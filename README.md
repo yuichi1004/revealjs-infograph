@@ -350,7 +350,13 @@ A cycle stays readable for two to eight stages.
 ![quadrant example: Eisenhower matrix](test/visual/__screenshots__/screenshots.spec.js/quadrant.png)
 
 ```html
-<div data-infograph="quadrant" data-x-label="Urgent" data-y-label="Important">
+<div
+  data-infograph="quadrant"
+  data-x-label="Urgency"
+  data-columns="Urgent, Not urgent"
+  data-y-label="Importance"
+  data-rows="Important, Not important"
+>
   <div data-label="Do First">
     <ul>
       <li>Fix production bug</li>
@@ -380,16 +386,32 @@ scatter plot: no item sits at a computed (x, y). Each quadrant is a bucket, and 
 is in is the entire claim — the same shape `readItems()` already returns for every other form, so
 `<li>`, `data-item` children, and the `data-items` shorthand all work inside each cell for free.
 
+**Name both ends of each axis.** `data-x-label="Urgency"` says only _what_ is measured, never _which
+way_ it grows, which leaves a reader reverse-engineering the direction from the cell titles — and in
+the Eisenhower matrix they will usually get it wrong, because urgency increases leftward and
+importance upward, the opposite of the "right and up mean more" habit every other chart teaches.
+`data-columns` names the left and right columns, `data-rows` the top and bottom, in that order.
+
+There is deliberately no arrow: a quadrant's axes are binary — four buckets is two levels by two
+levels — so an arrow would imply a continuum the form doesn't have, and would put the direction back
+into geometry where assistive tech can't reach it.
+
 A cell with no `data-label` advises: without a title, the only way to know what a cell means is its
 position relative to the axis labels, and that meaning would be invisible to assistive tech.
 `data-emphasis` highlights one cell, same rule as `bar`.
 
-| Attribute                       | Meaning                           |
-| ------------------------------- | --------------------------------- |
-| `data-x-label` / `data-y-label` | Axis titles, on the host          |
-| `data-label` on a cell          | That cell's title                 |
-| `<li>` / `data-item` in a cell  | One task in that cell             |
-| `data-emphasis`                 | Which cell to emphasise (1-based) |
+| Attribute                       | Meaning                                        |
+| ------------------------------- | ---------------------------------------------- |
+| `data-columns`                  | The two column names, left then right          |
+| `data-rows`                     | The two row names, top then bottom             |
+| `data-x-label` / `data-y-label` | What each axis measures — the dimension's name |
+| `data-label` on a cell          | That cell's title                              |
+| `<li>` / `data-item` in a cell  | One task in that cell                          |
+| `data-emphasis`                 | Which cell to emphasise (1-based)              |
+
+Both halves earn their place: a BCG matrix wants `data-x-label="Market share"` _and_
+`data-columns="High, Low"` — "High / Low" alone says nothing about what is high, and "Market share"
+alone is the ambiguity this section is about.
 
 Keep each cell to a handful of items — a quadrant is for narrowing down what matters, and a cell
 with a dozen unsorted tasks in it has stopped doing that.
