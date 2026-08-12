@@ -320,6 +320,24 @@ every other form uses. `data-emphasis` highlights one tier, same rule as `bar`.
 
 A pyramid stays readable for two to seven tiers — Maslow's own hierarchy is five.
 
+**With an icon on every tier** — `data-icon` on the `<li>`, next to the tier it names:
+
+| No icons                                                                              | With `data-icon`                                                                         |
+| ------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------- |
+| ![pyramid without icons](test/visual/__screenshots__/screenshots.spec.js/pyramid.png) | ![pyramid with icons](test/visual/__screenshots__/screenshots.spec.js/pyramid-icons.png) |
+
+```html
+<div data-infograph="pyramid">
+  <ul>
+    <li data-icon="star">Self-actualization</li>
+    <li data-icon="person">Esteem</li>
+    <li data-icon="heart">Love and belonging</li>
+    <li data-icon="flag">Safety needs</li>
+    <li data-icon="drop">Physiological needs</li>
+  </ul>
+</div>
+```
+
 ### `cycle` — a process that repeats
 
 ![cycle example: PDCA](test/visual/__screenshots__/screenshots.spec.js/cycle.png)
@@ -352,6 +370,25 @@ neutral colour regardless of `data-emphasis`, the same rule `flow`'s arrows alre
 | `data-icon` on a stage | See [Icons](#icons) below                   |
 
 A cycle stays readable for two to eight stages.
+
+**With an icon on every stage** — `data-icon` on the `<li>`, above the stage it names. The ring
+grows slightly to keep the taller labels clear of the arcs; a stage with no icon keeps the plain
+single-line label it has always had.
+
+| No icons                                                                          | With `data-icon`                                                                     |
+| --------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------ |
+| ![cycle without icons](test/visual/__screenshots__/screenshots.spec.js/cycle.png) | ![cycle with icons](test/visual/__screenshots__/screenshots.spec.js/cycle-icons.png) |
+
+```html
+<div data-infograph="cycle">
+  <ul>
+    <li data-icon="clock">Plan</li>
+    <li data-icon="gear">Do</li>
+    <li data-icon="check">Check</li>
+    <li data-icon="flag">Act</li>
+  </ul>
+</div>
+```
 
 ### `quadrant` — four labelled buckets
 
