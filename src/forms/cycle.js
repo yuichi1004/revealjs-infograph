@@ -36,6 +36,7 @@
 import { el, svgEl, cls } from '../dom.js';
 import { figure, hideFromAt } from '../a11y.js';
 import { readItems, applyEmphasis } from '../parse.js';
+import { checkIcons } from '../icon.js';
 import { CYCLE } from '../design/tokens.js';
 import { advise } from '../warn.js';
 
@@ -73,10 +74,14 @@ export default function cycle({ host }) {
     );
   }
 
+  checkIcons(items, host, 'cycle stage');
+
   const n = items.length || 1;
   const step = 360 / n;
   const inset = Math.min(MAX_INSET_DEG, step / 4);
   const anyEmphasis = items.some((item) => item.emphasis);
+  const anyIcon = items.some((item) => item.icon);
+  const labelRadius = anyIcon ? CYCLE.labelRadiusIcon : CYCLE.labelRadius;
   const arrowId = `ig-cycle-arrow-${++uid}`;
 
   const marker = svgEl(
@@ -142,16 +147,27 @@ export default function cycle({ host }) {
     'div',
     { class: cls('cycle-labels') },
     ...items.map((item, i) => {
-      const [x, y] = point(angle(i, n), CYCLE.labelRadius);
-      return el('span', {
-        class: [cls('cycle-label'), item.emphasis ? cls('cycle-label', 'on') : ''],
-        style: {
-          '--ig-i': i,
-          '--ig-cycle-x': `${pct(x, CYCLE.width)}%`,
-          '--ig-cycle-y': `${pct(y, CYCLE.height)}%`,
-        },
-        text: item.label,
-      });
+      const [x, y] = point(angle(i, n), labelRadius);
+      const classes = [cls('cycle-label'), item.emphasis ? cls('cycle-label', 'on') : ''];
+      const style = {
+        '--ig-i': i,
+        '--ig-cycle-x': `${pct(x, CYCLE.width)}%`,
+        '--ig-cycle-y': `${pct(y, CYCLE.height)}%`,
+      };
+
+      // Icon and text split into two children only when there's an icon to
+      // place — with none, this stays the exact single-span markup the form
+      // has always emitted, so a plain cycle's baseline does not move.
+      if (item.icon) {
+        return el(
+          'span',
+          { class: [...classes, cls('cycle-label', 'iconed')], style },
+          item.icon,
+          el('span', { class: cls('cycle-label-text'), text: item.label }),
+        );
+      }
+
+      return el('span', { class: classes, style, text: item.label });
     }),
   );
 

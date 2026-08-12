@@ -46,6 +46,14 @@ export const VENN = {
  * ring itself: a node sits *on* the ring, its label sits further out along the
  * same angle. The gap between `radius` and `labelRadius` is what keeps a label
  * from overlapping the arc that passes behind it.
+ *
+ * `labelRadiusIcon` is the same idea for a label that has grown an icon above
+ * its text: a taller label box needs more clearance from the ring, or the icon
+ * ends up overlapping the arc the plain `labelRadius` was tuned to clear. The
+ * form picks between the two per figure, not per label — see
+ * src/forms/cycle.js — so a plain cycle's geometry, and its baseline
+ * screenshot, do not move by a pixel when a sibling figure elsewhere starts
+ * using icons.
  */
 export const CYCLE = {
   width: 340,
@@ -55,6 +63,7 @@ export const CYCLE = {
   radius: 100,
   nodeRadius: 9,
   labelRadius: 128,
+  labelRadiusIcon: 142,
 };
 
 /**

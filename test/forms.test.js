@@ -3,6 +3,7 @@ import { render, text, all, warnings } from './helpers/mount.js';
 import { formNames, registerForm } from '../src/forms/index.js';
 import { WAFFLE } from '../src/design/tokens.js';
 import { SYMBOLS, resolveSymbol, symbolUrl } from '../src/design/symbols.js';
+import { iconFor } from '../src/icon.js';
 
 describe('stat', () => {
   it('prints the value exactly as authored', () => {
@@ -704,6 +705,203 @@ describe('quadrant', () => {
         'Q4: weak',
       ]);
     });
+  });
+});
+
+/*
+ * Per-element icons — flow, pyramid, cycle, quadrant.
+ *
+ * The rule under test is src/icon.js's: an icon names, it never measures. So
+ * these tests check identity (the right glyph on the right element, in
+ * whichever of the three notations authored it), not magnitude — there is no
+ * magnitude here to check. The geometric claims (same size, no overlap with
+ * the label it names) can only be checked in a browser and live in
+ * test/visual/principles.spec.js.
+ */
+describe('icons', () => {
+  describe('the three notations', () => {
+    it('reads data-icon as a built-in name', () => {
+      const figure = render(`<div data-infograph="flow">
+        <div data-step="Plan" data-icon="check"></div>
+        <div data-step="Do" data-icon="gear"></div>
+      </div>`);
+      expect(all(figure, '.ig-flow-step .ig-icon')).toHaveLength(2);
+    });
+
+    it('reads data-icon-path as a custom silhouette', () => {
+      const figure = render(`<div data-infograph="flow">
+        <div data-step="Plan" data-icon-path="M0 0h24v24H0z"></div>
+        <div data-step="Do" data-icon-path="M0 0h24v24H0z"></div>
+      </div>`);
+      const icon = /** @type {HTMLElement} */ (figure.querySelector('.ig-icon'));
+      expect(decodeURIComponent(icon.style.getPropertyValue('--ig-icon-image'))).toContain(
+        'M0 0h24v24H0z',
+      );
+    });
+
+    it('clones an inline <svg data-icon> child rather than moving it', () => {
+      // Exercised directly against iconFor(): renderHost() empties a host's
+      // children right after the form returns (src/render.js), so by the time
+      // render() hands back a figure there is nothing left to query the
+      // original against — the property under test has to be checked at the
+      // point where the move-vs-clone choice is actually made.
+      const source = document.createElement('div');
+      source.innerHTML = '<svg data-icon viewBox="0 0 24 24"><circle r="10"/></svg>';
+      const svg = source.querySelector('svg');
+
+      const icon = iconFor(source);
+
+      expect(icon?.querySelector('svg')).not.toBeNull();
+      expect(icon?.querySelector('svg')).not.toBe(svg);
+      // The author's element still has its own child — nothing was moved out.
+      expect(source.contains(svg)).toBe(true);
+    });
+
+    it('prefers the inline svg over data-icon-path over data-icon', () => {
+      const figure = render(`<div data-infograph="flow">
+        <div data-step="Plan" data-icon="check" data-icon-path="M0 0h1v1H0z">
+          <svg data-icon viewBox="0 0 24 24"><circle r="10"/></svg>
+        </div>
+        <div data-step="Do"></div>
+      </div>`);
+      expect(figure.querySelector('.ig-flow-step .ig-icon-inline')).not.toBeNull();
+    });
+
+    it('falls back to no icon on an unknown name, and advises with the built-in list', () => {
+      const figure = render(`<div data-infograph="flow">
+        <div data-step="Plan" data-icon="unicorn"></div>
+        <div data-step="Do"></div>
+      </div>`);
+      expect(figure.querySelector('.ig-flow-step .ig-icon')).toBeNull();
+      expect(warnings().join()).toMatch(/unknown symbol "unicorn"/);
+    });
+  });
+
+  describe('placement across forms', () => {
+    it('sits inside a flow step, above its label', () => {
+      const figure = render(`<div data-infograph="flow">
+        <div data-step="Plan" data-icon="check"></div>
+        <div data-step="Do"></div>
+      </div>`);
+      expect(figure.querySelector('.ig-flow-step .ig-icon')).not.toBeNull();
+    });
+
+    it('sits inside a pyramid tier label', () => {
+      const figure = render(`<div data-infograph="pyramid"><ul>
+        <li data-icon="star">Top</li>
+        <li>Bottom</li>
+      </ul></div>`);
+      expect(figure.querySelector('.ig-pyramid-label .ig-icon')).not.toBeNull();
+    });
+
+    it('sits above a cycle stage label, splitting it into an icon and a text span', () => {
+      const figure = render(`<div data-infograph="cycle"><ul>
+        <li data-icon="check">Plan</li>
+        <li>Do</li>
+      </ul></div>`);
+      const [first] = all(figure, '.ig-cycle-label');
+      expect(first.classList.contains('ig-cycle-label-iconed')).toBe(true);
+      expect(first.querySelector('.ig-icon')).not.toBeNull();
+      expect(first.querySelector('.ig-cycle-label-text')?.textContent).toBe('Plan');
+    });
+
+    it('leaves a plain cycle stage as the single span it has always been', () => {
+      const figure = render(`<div data-infograph="cycle"><ul>
+        <li>Plan</li><li>Do</li>
+      </ul></div>`);
+      const [first] = all(figure, '.ig-cycle-label');
+      expect(first.classList.contains('ig-cycle-label-iconed')).toBe(false);
+      expect(first.querySelector('.ig-cycle-label-text')).toBeNull();
+      expect(first.textContent).toBe('Plan');
+    });
+
+    it('wraps a quadrant cell title with its icon in a head row', () => {
+      const figure = render(`<div data-infograph="quadrant">
+        <div data-label="A" data-icon="check"></div>
+        <div data-label="B"></div>
+        <div data-label="C"></div>
+        <div data-label="D"></div>
+      </div>`);
+      const head = figure.querySelector('.ig-quadrant-head');
+      expect(head).not.toBeNull();
+      expect(head.querySelector('.ig-icon')).not.toBeNull();
+      expect(head.querySelector('.ig-quadrant-title')?.textContent).toBe('A');
+    });
+
+    it('leaves an icon-less quadrant cell as the plain title it has always been', () => {
+      const figure = render(`<div data-infograph="quadrant">
+        <div data-label="A"></div>
+        <div data-label="B"></div>
+        <div data-label="C"></div>
+        <div data-label="D"></div>
+      </div>`);
+      expect(figure.querySelector('.ig-quadrant-head')).toBeNull();
+      expect(figure.querySelector('.ig-quadrant-title')).not.toBeNull();
+    });
+  });
+
+  describe('advisories', () => {
+    it('warns when an icon has no visible label', () => {
+      render(`<div data-infograph="flow">
+        <div data-step="" data-icon="check"></div>
+        <div data-step="Do" data-icon="check"></div>
+      </div>`);
+      expect(warnings().join()).toMatch(/a flow step has data-icon but no visible label/);
+    });
+
+    it('warns when only some elements in a figure carry an icon', () => {
+      render(`<div data-infograph="flow">
+        <div data-step="Plan" data-icon="check"></div>
+        <div data-step="Do"></div>
+      </div>`);
+      expect(warnings().join()).toMatch(/some flow steps have data-icon and some do not/);
+    });
+
+    it('stays quiet about coverage when every element carries an icon', () => {
+      render(`<div data-infograph="flow">
+        <div data-step="Plan" data-icon="check"></div>
+        <div data-step="Do" data-icon="gear"></div>
+      </div>`);
+      expect(warnings().join()).not.toMatch(/some flow steps/);
+    });
+
+    it('stays quiet when no element carries an icon', () => {
+      render(`<div data-infograph="flow">
+        <div data-step="Plan"></div>
+        <div data-step="Do"></div>
+      </div>`);
+      expect(warnings().join()).not.toMatch(/data-icon/);
+    });
+
+    it('checks coverage per figure, in each form’s own words', () => {
+      render(`<div data-infograph="quadrant">
+        <div data-label="A" data-icon="check"></div>
+        <div data-label="B"></div>
+        <div data-label="C"></div>
+        <div data-label="D"></div>
+      </div>`);
+      expect(warnings().join()).toMatch(/some quadrant cells have data-icon and some do not/);
+    });
+  });
+
+  it('leaves the accessible name unchanged — icons are aria-hidden and add no text', () => {
+    const withoutIcons = render(`<div data-infograph="flow">
+      <div data-step="課題">分断されたチーム</div>
+      <div data-step="結果">+43.8%</div>
+    </div>`);
+    const withIcons = render(`<div data-infograph="flow">
+      <div data-step="課題" data-icon="alert">分断されたチーム</div>
+      <div data-step="結果" data-icon="check">+43.8%</div>
+    </div>`);
+    expect(withIcons.getAttribute('aria-label')).toBe(withoutIcons.getAttribute('aria-label'));
+  });
+
+  it('is aria-hidden, so it adds nothing a screen reader would read twice', () => {
+    const figure = render(`<div data-infograph="flow">
+      <div data-step="Plan" data-icon="check"></div>
+      <div data-step="Do"></div>
+    </div>`);
+    expect(figure.querySelector('.ig-icon')?.closest('[aria-hidden="true"]')).not.toBeNull();
   });
 });
 

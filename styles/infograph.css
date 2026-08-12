@@ -240,6 +240,57 @@
   background: var(--ig-mark-1);
 }
 
+/* ---------- icons (data-icon) ---------- */
+
+/*
+ * An icon names one element, it never measures — see src/icon.js for the rule
+ * this feature stays inside of. Painted the same way the pictogram marks
+ * above are: a mask over the element's own background, so colour and emphasis
+ * need no icon-aware branches, `--ig-icon-image` is set once per icon by
+ * src/icon.js and inherited by nothing else, and the element's own box stays
+ * outside the mask so this never becomes the thing a geometry test measures.
+ *
+ * `--ig-icon-size` is unset here on purpose — a bare `.ig-icon` falls back to
+ * 1.5em, and each form that places one sets the variable on its own container
+ * below, so every icon *within one figure* is still exactly one size (an icon
+ * that varied in size next to its own kind would be exactly the area-judgement
+ * failure principle 5b already forbids for marks).
+ */
+.ig-icon {
+  display: inline-flex;
+  flex: 0 0 auto;
+  width: var(--ig-icon-size, 1.5em);
+  height: var(--ig-icon-size, 1.5em);
+  background: currentColor;
+  color: var(--ig-text-2);
+  mask-image: var(--ig-icon-image);
+  -webkit-mask-image: var(--ig-icon-image);
+  mask-size: contain;
+  -webkit-mask-size: contain;
+  mask-position: center;
+  -webkit-mask-position: center;
+  mask-repeat: no-repeat;
+  -webkit-mask-repeat: no-repeat;
+}
+
+/*
+ * The bring-your-own-`<svg>` escape hatch: the author's markup is the shape,
+ * so there is no mask to paint — only sizing to apply. `currentColor` is left
+ * untouched, so a stroked icon set that draws with `stroke="currentColor"`
+ * keeps working exactly as authored.
+ */
+.ig-icon-inline {
+  background: none;
+  mask-image: none;
+  -webkit-mask-image: none;
+}
+
+.ig-icon-inline svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
 /* ---------- bar ---------- */
 
 /*
@@ -404,6 +455,10 @@
 .ig-flow-step-on {
   border-color: var(--ig-mark-1);
   box-shadow: inset 0 0 0 1px var(--ig-mark-1);
+}
+
+.ig-flow-step .ig-icon {
+  --ig-icon-size: 1.6em;
 }
 
 .ig-flow-step-label {
@@ -643,6 +698,13 @@
   color: var(--ig-text);
 }
 
+/* The row is baseline-aligned for the text and its value, which have one to
+   share; an icon has no baseline of its own, so it gets centred instead. */
+.ig-pyramid-label .ig-icon {
+  --ig-icon-size: 1.25em;
+  align-self: center;
+}
+
 .ig-pyramid-label-value {
   font-size: var(--ig-note-size);
   color: var(--ig-text-2);
@@ -652,6 +714,10 @@
 .ig-pyramid-row-on .ig-pyramid-label-text {
   color: var(--ig-ink-1);
   font-weight: 700;
+}
+
+.ig-pyramid-row-on .ig-icon {
+  color: var(--ig-mark-1);
 }
 
 /* ---------- cycle ---------- */
@@ -722,6 +788,31 @@
 .ig-cycle-label-on {
   color: var(--ig-ink-1);
   font-weight: 700;
+}
+
+/*
+ * Only stages with an icon get this two-child shape (see src/forms/cycle.js)
+ * — a plain cycle's labels stay the single span they have always been, so
+ * this rule never touches their layout.
+ */
+.ig-cycle-label-iconed {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.15em;
+  white-space: normal;
+}
+
+.ig-cycle-label-iconed .ig-cycle-label-text {
+  white-space: nowrap;
+}
+
+.ig-cycle-label .ig-icon {
+  --ig-icon-size: 1.5em;
+}
+
+.ig-cycle-label-on .ig-icon {
+  color: var(--ig-mark-1);
 }
 
 /* ---------- quadrant ---------- */
@@ -836,6 +927,18 @@
 .ig-quadrant-cell-on {
   border-color: var(--ig-mark-1);
   box-shadow: inset 0 0 0 1px var(--ig-mark-1);
+}
+
+/* Only present when a cell has an icon (see src/forms/quadrant.js) — with
+   none, the title is the same lone <p> this form has always emitted. */
+.ig-quadrant-head {
+  display: flex;
+  align-items: center;
+  gap: 0.4em;
+}
+
+.ig-quadrant-head .ig-icon {
+  --ig-icon-size: 1.25em;
 }
 
 .ig-quadrant-title {

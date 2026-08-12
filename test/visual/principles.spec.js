@@ -1006,6 +1006,109 @@ test.describe('quadrant: four equal cells sharing the grid’s edges', () => {
 });
 
 /* ------------------------------------------------------------------ *
+ * icons — an icon names, it never measures (see src/icon.js)
+ * ------------------------------------------------------------------ */
+
+/**
+ * The gap between two axis-aligned rectangles — 0 if they touch or overlap.
+ *
+ * Centre-to-centre distance was the first thing tried here, and it is the
+ * wrong metric: pyramid's icon sits pinned at a row's left edge while the
+ * label text next to it varies wildly in width ("Self-actualization" vs
+ * "Esteem"), so a long label's *centre* can sit much farther from its own
+ * icon than a short label's centre one row away sits from that same icon —
+ * centroids lie about adjacency the moment box sizes differ. The gap between
+ * the boxes does not have that problem: two things Gestalt proximity would
+ * call "near" are near by this measure regardless of how wide either box is.
+ *
+ * @param {{left:number,right:number,top:number,bottom:number}} a
+ * @param {{left:number,right:number,top:number,bottom:number}} b
+ */
+function rectDistance(a, b) {
+  const dx = Math.max(b.left - a.right, a.left - b.right, 0);
+  const dy = Math.max(b.top - a.bottom, a.top - b.bottom, 0);
+  return Math.hypot(dx, dy);
+}
+
+/**
+ * @param {{left:number,right:number,top:number,bottom:number}} a
+ * @param {{left:number,right:number,top:number,bottom:number}} b
+ */
+function rectsOverlap(a, b) {
+  return a.left < b.right && a.right > b.left && a.top < b.bottom && a.bottom > b.top;
+}
+
+test.describe('icons: an icon names, it never measures', () => {
+  /**
+   * One case per form that has icons on, plus the selectors for its icons and
+   * the labels those icons name — in the same document order, so index `i` on
+   * one side is meant to pair with index `i` on the other.
+   */
+  const cases = [
+    { id: 'flow-icons', icons: '.ig-flow-step .ig-icon', labels: '.ig-flow-step-label' },
+    { id: 'pyramid-icons', icons: '.ig-pyramid-label .ig-icon', labels: '.ig-pyramid-label-text' },
+    { id: 'cycle-icons', icons: '.ig-cycle-label-iconed .ig-icon', labels: '.ig-cycle-label-text' },
+    { id: 'quadrant-icons', icons: '.ig-quadrant-head .ig-icon', labels: '.ig-quadrant-title' },
+  ];
+
+  for (const { id, icons, labels } of cases) {
+    /*
+     * The load-bearing one: proximity is the whole claim an icon makes (it
+     * names *this* element, not some other one), and containment in the DOM
+     * does not prove it — a form could emit icons and labels in matching
+     * order but wire the geometry so icon i lands nearer label i+1 (a
+     * plausible off-by-one). Only measuring where things actually painted
+     * catches that.
+     */
+    test(`${id}: every icon is nearer to its own label than to any other element’s`, async ({
+      page,
+    }) => {
+      const iconRects = await page.evaluate(rectsOf, [stage(id), icons]);
+      const labelRects = await page.evaluate(rectsOf, [stage(id), labels]);
+      expect(iconRects.length, 'one icon per label in this fixture').toBe(labelRects.length);
+
+      iconRects.forEach((icon, i) => {
+        const distances = labelRects.map((label) => rectDistance(icon, label));
+        const nearest = distances.indexOf(Math.min(...distances));
+        expect(nearest, `icon ${i} is nearest to label ${nearest}, not its own`).toBe(i);
+      });
+    });
+
+    // Constraint 1 from src/icon.js: every icon in one figure is the same
+    // size. An icon that varied in size next to its own kind would be exactly
+    // the area-judgement failure docs/principles.md §5b already forbids for
+    // repeated marks.
+    test(`${id}: every icon is the same size`, async ({ page }) => {
+      const iconRects = await page.evaluate(rectsOf, [stage(id), icons]);
+      const widths = iconRects.map((r) => r.width);
+      const heights = iconRects.map((r) => r.height);
+      expect(Math.max(...widths) - Math.min(...widths), 'icon widths').toBeLessThan(1);
+      expect(Math.max(...heights) - Math.min(...heights), 'icon heights').toBeLessThan(1);
+    });
+
+    // Catches a stroke-only path masked into nothing — the icon-shaped repeat
+    // of the defect docs/principles.md §5b already records for a partial bar
+    // glyph: the container measured correctly and the glyph itself rendered
+    // at zero, so only measuring the glyph caught it.
+    test(`${id}: every icon has non-zero painted size`, async ({ page }) => {
+      const iconRects = await page.evaluate(rectsOf, [stage(id), icons]);
+      for (const [i, rect] of iconRects.entries()) {
+        expect(rect.width, `icon ${i} width`).toBeGreaterThan(0);
+        expect(rect.height, `icon ${i} height`).toBeGreaterThan(0);
+      }
+    });
+
+    test(`${id}: no icon overlaps its own element’s label text`, async ({ page }) => {
+      const iconRects = await page.evaluate(rectsOf, [stage(id), icons]);
+      const labelRects = await page.evaluate(rectsOf, [stage(id), labels]);
+      iconRects.forEach((icon, i) => {
+        expect(rectsOverlap(icon, labelRects[i]), `icon ${i} overlaps its own label`).toBe(false);
+      });
+    });
+  }
+});
+
+/* ------------------------------------------------------------------ *
  * Legibility guards that no single principle owns
  * ------------------------------------------------------------------ */
 

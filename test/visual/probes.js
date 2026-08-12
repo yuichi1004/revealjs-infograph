@@ -292,16 +292,19 @@ export function decorationIn([rootSelector]) {
    * Elements allowed to carry a pictogram mask.
    *
    * A silhouette is only legitimate when it *is* the mark — one repeated symbol
-   * standing for one unit. The same mask on a container, a label or a figure
-   * background would be exactly the ornament principle 5 rules out, so the
-   * allowance is granted per class rather than for `mask-image` generally, and
-   * widening it has to be a deliberate, reviewable edit.
+   * standing for one unit — or, since `ig-icon` was added, when it *names* one
+   * element beside that element's own visible label and never varies in size
+   * (see src/icon.js — "an icon names, it never measures"). The same mask on a
+   * container, a plain label or a figure background would be exactly the
+   * ornament principle 5 rules out, so the allowance is granted per class
+   * rather than for `mask-image` generally, and widening it has to be a
+   * deliberate, reviewable edit.
    *
    * Declared inside the function because this whole file is serialised into the
    * page by `page.evaluate` — a module-scope const is not in scope there, and
    * the probe throws rather than silently passing.
    */
-  const markClasses = ['ig-waffle-cell', 'ig-bar-glyph'];
+  const markClasses = ['ig-waffle-cell', 'ig-bar-glyph', 'ig-icon'];
 
   const out = [];
   for (const el of [root, ...root.querySelectorAll('*')]) {

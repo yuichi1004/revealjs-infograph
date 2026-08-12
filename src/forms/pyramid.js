@@ -30,6 +30,7 @@
 import { el, cls } from '../dom.js';
 import { figure, hideFromAt } from '../a11y.js';
 import { readItems, applyEmphasis } from '../parse.js';
+import { checkIcons } from '../icon.js';
 import { advise } from '../warn.js';
 
 /**
@@ -70,6 +71,8 @@ export default function pyramid({ host }) {
     });
   }
 
+  checkIcons(items, host, 'pyramid tier');
+
   const n = items.length || 1;
   const anyEmphasis = items.some((item) => item.emphasis);
 
@@ -103,6 +106,7 @@ export default function pyramid({ host }) {
     const label = el(
       'span',
       { class: cls('pyramid-label'), style: { '--ig-i': stagger } },
+      item.icon,
       el('span', { class: cls('pyramid-label-text'), text: item.label }),
       item.number.valid
         ? el('span', { class: cls('pyramid-label-value'), text: item.number.text })
