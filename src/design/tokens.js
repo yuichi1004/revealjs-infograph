@@ -39,6 +39,25 @@ export const VENN = {
 };
 
 /**
+ * Cycle geometry, in SVG user units. Square, unlike venn's wide canvas, because
+ * the shape is a ring rather than two circles side by side.
+ *
+ * `nodeRadius` and `labelRadius` are both counted from the same centre as the
+ * ring itself: a node sits *on* the ring, its label sits further out along the
+ * same angle. The gap between `radius` and `labelRadius` is what keeps a label
+ * from overlapping the arc that passes behind it.
+ */
+export const CYCLE = {
+  width: 340,
+  height: 340,
+  centerX: 170,
+  centerY: 170,
+  radius: 100,
+  nodeRadius: 9,
+  labelRadius: 128,
+};
+
+/**
  * @param {Density} density
  * @returns {number} Multiplier applied to spacing-derived geometry.
  */
