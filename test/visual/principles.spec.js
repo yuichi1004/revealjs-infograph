@@ -934,8 +934,8 @@ test.describe('quadrant: four equal cells sharing the grid’s edges', () => {
     expect(xLabels, 'one x-axis dimension name').toHaveLength(1);
     expect(yLabels, 'one y-axis dimension name').toHaveLength(1);
 
-    expect(xLabels[0].top, 'x-axis label must sit below the grid').toBeGreaterThanOrEqual(
-      grid.bottom - 1,
+    expect(xLabels[0].bottom, 'x-axis label must sit above the grid').toBeLessThanOrEqual(
+      grid.top + 1,
     );
     expect(yLabels[0].right, 'y-axis label must sit left of the grid').toBeLessThanOrEqual(
       grid.left + 1,

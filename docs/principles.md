@@ -125,11 +125,19 @@ An arrow was considered and rejected: a quadrant's axes are _binary_ (four bucke
 two levels), so an arrow would assert a continuum the form does not have, and would leave the
 direction in geometry, which is the whole defect.
 
+**The x-axis label sits above the grid, not below — proximity again, one level up.** The dimension
+name and its column headers both describe the x-axis, and a reader groups whatever sits spatially
+closest. Placing "Urgency" below the block and "Urgent / Not urgent" above it puts the two halves of
+the same fact on opposite sides, with nothing in between to suggest they belong together. Moving the
+label to the top, next to the headers it names, is the same fix principle 3 makes everywhere else —
+it just applies it to the axis label's own position, not only to the cells'.
+
 **Visual verification**: the four cells are equal-sized and share the grid's row and column edges
 in the order they were authored in — top-left, top-right, bottom-left, bottom-right — so a CSS
 regression that silently reordered the grid (column-major instead of row-major, say) is caught by
 position, not just by cell count. Each cell's title sits above its own item list, never another
-cell's, and the axis labels sit outside the 2×2 block rather than overlapping it.
+cell's, the x-axis label sits above the grid and the y-axis label sits left of it, and neither
+overlaps the 2×2 block.
 
 For the axis ends the guarantee is composed from two layers, because neither is sufficient alone:
 the unit suite proves the authored order becomes the DOM order, and the visual suite proves each

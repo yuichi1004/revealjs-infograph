@@ -729,16 +729,20 @@
 /*
  * The 2×2 block plus its two axis labels, laid out as one grid so the labels
  * stay anchored to the block regardless of how tall either row grows. The
- * bottom-left corner is deliberately empty (`.`) — nothing is ever placed
- * there, so it is named out rather than left implicit.
+ * x-label sits above the grid, not below: it and the column headers both
+ * name the same axis, and Gestalt proximity groups whatever is spatially
+ * closest — the dimension name has to sit next to its own poles, not on the
+ * opposite side of the block from them. The top-left corner is deliberately
+ * empty (`.`) — nothing is ever placed there, so it is named out rather than
+ * left implicit.
  */
 .ig-quadrant {
   display: grid;
   grid-template-columns: auto 1fr;
-  grid-template-rows: 1fr auto;
+  grid-template-rows: auto 1fr;
   grid-template-areas:
-    'y-label grid'
-    '.       x-label';
+    '.       x-label'
+    'y-label grid';
   align-items: center;
   gap: 0.6em 0.9em;
   width: 100%;
