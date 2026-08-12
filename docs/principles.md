@@ -1,239 +1,256 @@
-# 原則と、その実装場所
+# Principles, and where they live
 
-このパッケージが「認知科学に基づく」と言うとき、それは README に原則を列挙することではなく、
-**既定値・検証・警告としてコードに埋め込む**ことを意味します。この表は「原則 → どのファイルが
-どう実装しているか」の対応です。原則を破りたいときにどこを触ればよいかも、ここから分かります。
+When this package claims to be "grounded in cognitive science," that doesn't mean listing
+principles in a README — it means **baking them into defaults, validation, and warnings** in the
+code. This table maps each principle to the file that implements it, so you also know where to
+look if you ever want to break one.
 
-原則はすべて**既定値**であり、規則ではありません。`advise()` は警告するだけで、描画を拒否したり
-出力を書き換えたりはしません（`src/warn.js`）。
+Every principle is a **default**, not a rule. `advise()` only warns — it never refuses to render or
+rewrites the output (`src/warn.js`).
 
-## 検証の二層構造
+## Two layers of verification
 
-各節に **視覚検証** の行があります。これは実ブラウザ上で幾何と色を測るテストで、
-`test/visual/principles.spec.js` にあります。この層が必要な理由は単純です。
+Each section below has a **visual verification** line. That's a test that measures geometry and
+colour in a real browser, in `test/visual/principles.spec.js`. The reason this layer exists is
+simple.
 
-ユニットテスト（`npm test`）は happy-dom 上で走り、**レイアウトを計算しません**。つまり
-「バーが共通基線上にある」「ラベルがマークの近くに描かれている」「交差が実際にレンズ形で
-塗られている」といった、この文書の主張のほとんどは、ユニットテストでは原理的に検証できません。
-CSS を 1 行変えればバーの基線が 36px ずれても、145 個のユニットテストは全部 green のままです。
-実際に起きました — 下の原則 1 の節を参照。
+The unit suite (`npm test`) runs on happy-dom, which **computes no layout**. So most of what this
+document claims — "the bars share a common baseline," "a label is drawn near its mark,"
+"the intersection is really painted as a lens" — is unverifiable by a unit test, in principle.
+Change one line of CSS and the bar baseline can drift 36px while all 145 unit tests stay green.
+That actually happened — see the note under principle 1 below.
 
 ```sh
-npm test                    # DOM の構造（happy-dom、2.6 秒）
-npm run test:visual:docker  # 描画された幾何と色（実ブラウザ）
+npm test                    # DOM structure (happy-dom, 2.6s)
+npm run test:visual:docker  # rendered geometry and colour (a real browser)
 ```
 
-視覚検証はスクリーンショット比較ではありません。失敗すると
-「principle 1: bar left edges span 36.00px」のように、**どの原則がどれだけ破れたか**が
-数値で出ます。画像を目視して原因を推測する必要はありません。
+Visual verification is not screenshot comparison. When it fails, it reports **which principle
+broke and by how much** — e.g. "principle 1: bar left edges span 36.00px." You never have to
+eyeball an image to guess the cause.
 
 ---
 
-## 1. 前注意的属性には精度の順位がある
+## 1. Preattentive attributes have a precision ranking
 
-位置 > 長さ > 角度 > 面積 > 濃淡 > 色相。Cleveland & McGill の基本知覚課題の順位です。
-量を面積で表す図は、位置が使えたのに精度を装飾と交換しています。
+Position > length > angle > area > shading > hue — Cleveland & McGill's ranking of elementary
+perceptual tasks. A figure that encodes a quantity as area traded away precision it could have had
+from position, for decoration.
 
-| 実装                                                                              | 場所                                  |
-| --------------------------------------------------------------------------------- | ------------------------------------- |
-| 意図 → フォームの対応表。`part-of-whole` は円グラフではなく waffle に解決される   | `src/design/encode.js` の `BY_INTENT` |
-| bar はゼロ基線・共通左端。チャート全体が 1 つの grid で、行は `display: contents` | `styles/infograph.css` の `.ig-bar`   |
-| 軸の切り詰めは実装しない（長さが量を意味しなくなるため）                          | `src/forms/bar.js` 冒頭のコメント     |
-| venn だけは面積を使う。重なりが主題そのもので、判断すべき量が存在しないため       | `src/forms/venn.js`                   |
+| Implementation                                                                                            | Where                                    |
+| --------------------------------------------------------------------------------------------------------- | ---------------------------------------- |
+| Intent → form mapping. `part-of-whole` resolves to waffle, not a pie chart                                | `BY_INTENT` in `src/design/encode.js`    |
+| Bar has a zero baseline and a shared left edge. The whole chart is one grid; rows are `display: contents` | `.ig-bar` in `styles/infograph.css`      |
+| No axis truncation (it would make length stop meaning quantity)                                           | Comment at the top of `src/forms/bar.js` |
+| Venn is the one form that uses area — the overlap _is_ the subject, and there's no quantity to judge      | `src/forms/venn.js`                      |
 
-**視覚検証**: 全 `.ig-bar-fill` の left が ±1px で一致すること、幅の比が値の比と ±1px で
-一致すること、全トラックが右端を共有すること（`principle 1` の describe）。
+**Visual verification**: every `.ig-bar-fill`'s left edge agrees within ±1px, width ratios match
+value ratios within ±1px, and every track shares a right edge (the `principle 1` describe block).
 
-> この検証は書いた初日に本物の欠陥を見つけました。当初 `.ig-bar-row` が行ごとに独立した
-> grid だったため、ラベル列が行ごとに別々に採寸され、3 本のバーが 36px 違う x から始まって
-> いました。DOM は正しく、ユニットテストは全部 green で、長さの比較だけが成立していませんでした。
+> This check found a real defect on day one. `.ig-bar-row` originally had its own independent
+> grid, so each row's label column was measured separately and three bars started 36px apart on x.
+> The DOM was correct and every unit test stayed green — only the length comparison itself was
+> broken.
 
-**円グラフがない理由**: 角度と面積という順位下位の 2 課題で、waffle が位置で答える問いに答えさせるため。
+**Why no pie chart**: it would ask waffle's question — one that position can answer — using angle
+and area, the two lowest-ranked tasks instead.
 
-## 2. 作業記憶に載る塊は 4 前後
+## 2. Working memory holds around four chunks
 
-「7±2」はリハーサル済みの数字列の話です。図を*同時に読みながら*保持できる塊は 4 程度。
+"7±2" is about rehearsed digit strings. What you can hold _while reading a figure at the same
+time_ is closer to four.
 
-| 実装                                               | 場所                                                                        |
-| -------------------------------------------------- | --------------------------------------------------------------------------- |
-| `maxSeries: 4` を超えたら助言                      | `src/options.js` の `DEFAULTS`、`src/design/encode.js` の `checkEncoding()` |
-| venn は 3 円を描かない（7 領域は講演中に解けない） | `src/forms/venn.js`（`data-c` は無視して理由を助言）                        |
-| compare は 2 項専用。3 項以上は bar へ誘導         | `src/forms/compare.js`                                                      |
+| Implementation                                                          | Where                                                                       |
+| ----------------------------------------------------------------------- | --------------------------------------------------------------------------- |
+| Advise past `maxSeries: 4`                                              | `DEFAULTS` in `src/options.js`, `checkEncoding()` in `src/design/encode.js` |
+| Venn never draws three circles (seven regions can't be solved mid-talk) | `src/forms/venn.js` (ignores `data-c` and explains why)                     |
+| Compare is two-item only; three or more routes to bar                   | `src/forms/compare.js`                                                      |
 
-**視覚検証**: 同梱の例が自分の助言に引っかからないこと（描画された系列数 ≤ 4）。
-自分が警告する図を同梱しているパッケージは信用されません。
+**Visual verification**: the bundled examples don't trip their own advice (rendered series count ≤
+4). A package that ships a figure it warns about isn't credible.
 
-## 3. 空間的近接 — 凡例は分割注意を生む
+## 3. Spatial proximity — a legend splits attention
 
-図の隣に凡例を置くと、読み手は「色 → 名前」の対応を保持しながら図を読むことになります。
+Put a legend next to a figure and the reader has to hold the colour-to-name mapping in mind while
+reading the figure itself.
 
-| 実装                                                               | 場所                             |
-| ------------------------------------------------------------------ | -------------------------------- |
-| **直接ラベリングが既定**。`legend: false` が `DEFAULTS`            | `src/options.js`                 |
-| bar は各行の先頭にラベル、バー末尾に値                             | `src/forms/bar.js`               |
-| venn はラベルを自分の円の x 位置に置く（幾何が動けばラベルも動く） | `src/forms/venn.js` の `label()` |
-| waffle は値とラベルをグリッド直下に並置                            | `src/forms/waffle.js`            |
+| Implementation                                                                            | Where                            |
+| ----------------------------------------------------------------------------------------- | -------------------------------- |
+| **Direct labelling by default**. `legend: false` in `DEFAULTS`                            | `src/options.js`                 |
+| Bar puts the label at the start of each row, the value at the end of the bar              | `src/forms/bar.js`               |
+| Venn puts each label at its own circle's x-position (geometry moves, label moves with it) | `label()` in `src/forms/venn.js` |
+| Waffle places the value and label directly under the grid                                 | `src/forms/waffle.js`            |
 
-**視覚検証**: bar のラベルが自分の行のトラックと垂直中心を共有すること（±2px）。
-venn のラベルが中線の自分の側にあり、かつ自分の円に届いていること。`data-overlap` を
-変えるとラベルが実際に動くこと。凡例らしき要素はマークから 40px 以内にあること。
+**Visual verification**: a bar label shares vertical centre with its own row's track (±2px). A
+venn label stays on its own side of the midline and still reaches its own circle. Moving
+`data-overlap` actually moves the labels. Anything legend-shaped stays within 40px of the marks it
+describes.
 
-> ここでも欠陥が 1 つ出ました。当初は venn のラベルを円の中心に**中央揃え**していたため、
-> `data-overlap="0.55"` で 2 つのラベルが 494px² 重なっていました。凡例を避けるための
-> 直接ラベリングが、凡例より読みにくい状態を作っていたわけです。現在は円の中心を起点に
-> **外向きに**アンカーするため、重なりがどれだけ大きくても衝突しません。
+> A defect showed up here too. Venn labels were originally **centred** on their circle, so at
+> `data-overlap="0.55"` the two labels overlapped by 494px². The direct labelling meant to avoid a
+> legend had produced something harder to read than one. Labels now anchor at the circle's centre
+> and point outward, so they never collide regardless of how much the circles overlap.
 
-## 4. シグナリング — 強調は 1 つ
+## 4. Signalling — exactly one emphasis
 
-強調が 2 つあるのは強調が 0 個あるのと同じです。目の行き先がなくなります。
+Two things emphasised is the same as none — the eye has nowhere to land.
 
-| 実装                                                        | 場所                                |
-| ----------------------------------------------------------- | ----------------------------------- |
-| 複数の `data-emphasis` は先頭だけ残して助言                 | `src/parse.js` の `applyEmphasis()` |
-| 強調がある bar は、当該バーだけ色を保ち残りはグレーに落ちる | `src/forms/bar.js`                  |
-| 強調がない bar は全バー同色（カテゴリ全体が主題）           | 同上                                |
+| Implementation                                                                   | Where                               |
+| -------------------------------------------------------------------------------- | ----------------------------------- |
+| Multiple `data-emphasis` marks: only the first survives, with advice             | `applyEmphasis()` in `src/parse.js` |
+| An emphasised bar keeps its colour; the rest drop to gray                        | `src/forms/bar.js`                  |
+| With no emphasis, every bar is the same colour (the whole category is the point) | same                                |
 
-**視覚検証**: 強調なしの bar は塗り色が 1 種類だけ。強調ありでは強調バーの色が他と異なり、
-かつ他は全部同色。さらに**強調バーの色は「強調なしのときの色」と同一**であること —
-読み手に「この新しい色は重要という意味だ」と学習させないため。
+**Visual verification**: with no emphasis, every bar has exactly one fill colour. With emphasis,
+the emphasised bar's colour differs from the rest, and the rest are all one colour. And:
+**the emphasised bar's colour is identical to what every bar's colour was without emphasis** —
+so the reader never has to learn "this new colour means important."
 
-## 5. 一貫性原則 — 装飾は理解を妨げる
+## 5. The consistency principle — decoration works against understanding
 
-| 実装                                                                              | 場所                                |
-| --------------------------------------------------------------------------------- | ----------------------------------- |
-| グラデーション・影・3D・装飾アイコンを CSS に持たない                             | `styles/infograph.css` 全体         |
-| waffle の未充填セルは第 2 の色相ではなく面に近いグレー（第 2 カテゴリに見せない） | `.ig-waffle-cell`                   |
-| compare の減少方向を赤にしない（リードタイムの減少は多くの場合「良い知らせ」）    | `.ig-compare-delta-down` のコメント |
+| Implementation                                                                                              | Where                               |
+| ----------------------------------------------------------------------------------------------------------- | ----------------------------------- |
+| No gradients, shadows, 3D, or decorative icons anywhere in the CSS                                          | all of `styles/infograph.css`       |
+| Waffle's unfilled cells are a near-surface gray, not a second hue (so they don't read as a second category) | `.ig-waffle-cell`                   |
+| Compare's decrease direction is never coloured red (a shrinking lead time is usually good news)             | comment on `.ig-compare-delta-down` |
 
-**視覚検証**: 全フォームの全子孫で `background-image`・`text-shadow`・ぼかしや
-オフセットのある `box-shadow` が算出スタイル上に存在しないこと。
-`inset 0 0 0 1px`（waffle のセル境界）は装飾ではなくヘアラインなので除外します。
+**Visual verification**: no descendant of any form has a computed `background-image`, a
+`text-shadow`, or a blurred/offset `box-shadow`. `inset 0 0 0 1px` (the waffle's cell borders) is
+excluded — it's a hairline, not decoration.
 
-## 6. 分割提示 — 学習者のペースで区切る
+## 6. Progressive disclosure — let the pace match the audience
 
-同じ内容でも、区切って提示したほうが理解が良いという結果はよく再現しています。
+The same content, revealed in stages, reliably measures better than all at once.
 
-| 実装                                                            | 場所                             |
-| --------------------------------------------------------------- | -------------------------------- |
-| `data-ig-fragment="steps"` で各段階を reveal の fragment に分割 | `src/forms/flow.js`              |
-| fragment 内の図は `fragmentshown` まで入場アニメーションを待つ  | `src/motion.js` の `isPending()` |
+| Implementation                                                             | Where                            |
+| -------------------------------------------------------------------------- | -------------------------------- |
+| `data-ig-fragment="steps"` turns each stage into a reveal.js fragment      | `src/forms/flow.js`              |
+| A figure inside a fragment waits for `fragmentshown` before it animates in | `isPending()` in `src/motion.js` |
 
-**視覚検証**: 実デッキ上で、fragment 未展開の flow が待機していること、→ キーで展開され、
-最終的に静止状態（opacity 1）へ落ち着くこと（`test/visual/integration.spec.js`）。
+**Visual verification**: on a real deck, a flow whose fragments haven't fired yet waits; pressing
+→ reveals it, and it settles into the resting state (opacity 1) (`test/visual/integration.spec.js`).
 
-## 7. 因果は明示する — 近接だけでは「順序」を意味しない
+## 7. State causation explicitly — proximity alone doesn't mean "sequence"
 
-横並びの箱は Gestalt の近接によって「グループ」と読まれます。方向を述べるものが要ります。
+Boxes in a row read as a Gestalt "group" by proximity alone. Something has to state direction.
 
-| 実装                                                            | 場所                |
-| --------------------------------------------------------------- | ------------------- |
-| flow は段階間に必ず矢印を描く（端には描かない）                 | `src/forms/flow.js` |
-| 各段階は枠線で囲む（共通領域 — ラベルと本文が読む前に結びつく） | `.ig-flow-step`     |
-| 矢印は支援技術から隠す（DOM 順が既に順序を表しているため）      | `hideFromAt()`      |
+| Implementation                                                                      | Where               |
+| ----------------------------------------------------------------------------------- | ------------------- |
+| Flow always draws an arrow between stages, never at the ends                        | `src/forms/flow.js` |
+| Each stage is bordered (a common region — label and body bind before you read them) | `.ig-flow-step`     |
+| Arrows are hidden from assistive tech (DOM order already states the sequence)       | `hideFromAt()`      |
 
-**視覚検証**: 矢印の本数が段階数 − 1 であること、各矢印の中心が隣り合う 2 段階の
-**水平ギャップの内側**にあること（端に浮いていないこと）、全段階が上端を共有すること。
+**Visual verification**: the number of arrows equals stage count minus one, each arrow's centre
+sits **inside the horizontal gap** between its two neighbouring stages (never floating off an
+end), and every stage shares the same top edge.
 
-## 8. 聴衆に暗算をさせない
+## 8. Never make the audience do mental arithmetic
 
-| 実装                                                                  | 場所                                |
-| --------------------------------------------------------------------- | ----------------------------------- |
-| compare は差分（絶対・相対）を自動計算して 1 つの量として提示         | `src/forms/compare.js` の `delta()` |
-| 基線が 0 以下のときは相対変化を出さない（意味を持たない数になるため） | 同上                                |
-| waffle は丸めたセル数ではなく著者が書いた正確な値を表示               | `src/forms/waffle.js`               |
+| Implementation                                                                          | Where                               |
+| --------------------------------------------------------------------------------------- | ----------------------------------- |
+| Compare computes the delta (absolute and relative) automatically as one quantity        | `delta()` in `src/forms/compare.js` |
+| No relative change is shown when the baseline is ≤ 0 (it would be a meaningless number) | same                                |
+| Waffle displays the exact value the author wrote, not the rounded cell count            | `src/forms/waffle.js`               |
 
-**視覚検証**: compare の 2 値が同じフォントサイズで描かれていること（片方を大きくすると
-差分を読む前に結論が押し付けられるため）。
+**Visual verification**: compare's two values are rendered at the same font size (making one
+larger would push a conclusion before the reader gets to compare the numbers).
 
-## 9. 色覚多様性と可読性は別の問題
+## 9. Colour-vision diversity and legibility are different problems
 
-「読める」と「見分けられる」は違う問いです。前者は WCAG コントラスト比、後者は
-CVD シミュレーション下の ΔE2000。
+"Can you read it" and "can you tell it apart" are different questions. The first is WCAG contrast
+ratio; the second is ΔE2000 under simulated colour-vision deficiency.
 
-| 実装                                                                                | 場所                                                       |
-| ----------------------------------------------------------------------------------- | ---------------------------------------------------------- |
-| コントラスト比・ΔE2000・CVD シミュレーション（Viénot LMS）の実装                    | `src/design/contrast.js`                                   |
-| mark / ink の役割分離。mark は塗り専用、ink は 4.5:1 を超える文字色                 | `src/design/palette.js`                                    |
-| 閾値を CI で強制。1 色でも変えれば違反した項目が名前付きで落ちる                    | `test/palette.test.js`                                     |
-| 人間向けの表                                                                        | `npm run validate:palette` (`scripts/validate-palette.js`) |
-| venn の交差ラベルは mark ではなく ink を使う（mark-3 は 2.74:1 で文字には使えない） | `.ig-venn-label-ab`                                        |
+| Implementation                                                                              | Where                                                      |
+| ------------------------------------------------------------------------------------------- | ---------------------------------------------------------- |
+| Contrast ratio, ΔE2000, and CVD simulation (Viénot LMS) are all implemented here            | `src/design/contrast.js`                                   |
+| Mark/ink role split — mark is fill-only, ink is darkened past 4.5:1 for text                | `src/design/palette.js`                                    |
+| Thresholds enforced in CI; change even one colour and the violation is reported by name     | `test/palette.test.js`                                     |
+| A human-readable table                                                                      | `npm run validate:palette` (`scripts/validate-palette.js`) |
+| The venn intersection label uses ink, not mark (mark-3 is 2.74:1 — too low to read as text) | `.ig-venn-label-ab`                                        |
 
-**mark に 4.5:1 を要求しない理由**: すべてのフォームが直接ラベリングするため、塗りの色は
-「見分けられれば」よく「読めなくて」よい。それが mark 色に彩度を許している根拠です。
+**Why mark colours aren't held to 4.5:1**: every form direct-labels its marks, so a fill only needs
+to be _tellable apart_, not _readable_. That's the basis for letting mark colours run more
+saturated.
 
-**視覚検証**: 図の中の**見えている全テキスト**について、実効前景色と実効背景色を
-`getComputedStyle` から合成し、`contrastRatio()`（本体と同じ関数）で採点。24px 以上または
-700 太字 19px 以上は 3:1、それ以外は 4.5:1。`examples/` 上でも同じ検査を行うため、
-**ホストテーマ適用後**の実際の解決値が測られます。
+**Visual verification**: for **every piece of visible text** in a figure, the effective foreground
+and background are composited from `getComputedStyle` and scored with `contrastRatio()` — the same
+function the package ships. ≥24px, or ≥19px at weight 700, needs 3:1; everything else needs 4.5:1.
+The same check runs against `examples/`, so it measures the value **after the host theme is
+applied**.
 
-> `test/palette.test.js` はパレット**定数**を測ります。この検証は**カスケードが解決した結果**を
-> 測ります。両者は別物で、後者でしか見つからない欠陥がありました — `.ig-compare-arrow` が
-> `--ig-muted`（バーの非強調用の塗り色）を文字色に使っており、1.63:1 で描かれていました。
-> 「導入前 → 導入後」の方向を示す唯一の要素が、事実上見えていませんでした。
+> `test/palette.test.js` measures the palette **constants**. This check measures **what the
+> cascade actually resolved to** — a different thing, and one that found a defect the other
+> couldn't: `.ig-compare-arrow` was using `--ig-muted` (the bar's de-emphasis fill) as its text
+> colour, rendering at 1.63:1. The one element stating the direction of "before → after" was, in
+> practice, invisible.
 
-## 9b. トークンはデッキの外でも解決されなければならない
+## 9b. Tokens must resolve outside a deck too
 
-**視覚検証**: フィクスチャ（`.reveal` 要素が存在しない素のページ）で全フォームを描画し、
-色と幾何を検査します。
+**Visual verification**: render every form on a fixture page with no `.reveal` element present at
+all, and check colour and geometry there.
 
-> これも本物の欠陥を見つけました。`--ig-*` トークンが `.reveal` セレクタにだけ定義されて
-> いたため、README が公開 API として案内している `renderAll()` の経路では**全トークンが未定義**
-> でした。`background: var(--ig-mark-1)` は無効値になって透明に落ち、バーは色なしで描かれて
-> いました。ユニットテストは色を見ないので気づけません。現在は `:root, .reveal` の両方に
-> 定義しています（`.reveal` 側はデッキ内でホストトークンを再解決するため必要）。
+> This also found a real defect. The `--ig-*` tokens were only defined under the `.reveal`
+> selector, so on the `renderAll()` path the README documents as public API, **every token was
+> undefined**. `background: var(--ig-mark-1)` collapsed to an invalid value and fell through to
+> transparent — bars rendered with no colour at all. A unit test, which doesn't look at colour,
+> couldn't have caught this. Tokens are now defined on both `:root` and `.reveal` (the `.reveal`
+> copy is still needed so a host theme's tokens re-resolve correctly inside a deck).
 
-## 10. 動きは意味があるときだけ
+## 10. Motion only when it means something
 
-| 実装                                                                                     | 場所                                                        |
-| ---------------------------------------------------------------------------------------- | ----------------------------------------------------------- |
-| **静止状態が完成状態**。アニメーションは追加されるクラスであり、終わると元の見た目に戻る | `src/motion.js` 冒頭、`styles/infograph.css` の `.ig-enter` |
-| `prefers-reduced-motion` と `isPrintView()` を毎回チェック（キャッシュしない）           | `src/motion.js` の `shouldAnimate()`                        |
-| waffle のセルは 6ms 刻み（100 × 18ms は話者の一文より長い）                              | `.ig-enter .ig-waffle-cell-on`                              |
+| Implementation                                                                                              | Where                                                         |
+| ----------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------- |
+| **The resting state is the finished state.** Animation is an added class; when it ends, nothing has changed | top of `src/motion.js`, `.ig-enter` in `styles/infograph.css` |
+| `prefers-reduced-motion` and `isPrintView()` are checked fresh every time, never cached                     | `shouldAnimate()` in `src/motion.js`                          |
+| Waffle cells stagger in 6ms steps (100 × 18ms would outlast a speaker's sentence)                           | `.ig-enter .ig-waffle-cell-on`                                |
 
-この「静止状態が完成状態」という設計が、劣化パスを特別扱いなしで正しくします。JS が動かない、
-印刷する、動きを減らす設定、`ready` 前に見える — すべて同じ正しい図になります。
+This "resting state is the finished state" design is what makes every degraded path correct without
+special-casing it. JS disabled, printed, reduced motion, seen before `ready` fires — all produce the
+same correct figure.
 
-**視覚検証**: 3 つの経路すべてで検査します。
+**Visual verification**: across all three paths.
 
-1. フィクスチャ（reveal もライフサイクルも存在しない）で全図が opacity 1・transform なし・
-   waffle セルが正方形であること — つまり**何も動かなかったとき**に既に完成していること
-2. `?print-pdf` + print メディアエミュレーションで全図が完全に描かれ、バーの幅とセルの寸法が
-   0 でないこと（scaleX アニメーション前提なら幅 0 で印刷される）
-3. `reducedMotion: 'reduce'` の Playwright プロジェクトで同じ検査を再実行
+1. On the fixture (no reveal, no lifecycle at all), every figure has opacity 1, no transform, and
+   square waffle cells — i.e. it is already finished **when nothing animated it**
+2. Under `?print-pdf` plus print media emulation, every figure is fully painted and bar
+   widths/cell dimensions are nonzero (a scaleX-dependent animation would print at zero width)
+3. The same checks rerun under a Playwright project with `reducedMotion: 'reduce'`
 
-3 番目は設定で丸ごと再実行するので、原則 10 に関わるアサーションはすべて低モーション環境でも
-検証されます。
+The third re-runs the whole suite under a config switch, so every assertion tied to principle 10 is
+also verified under reduced motion.
 
-## 11. 見えない読者にも同じ意味を渡す
+## 11. The same meaning reaches readers who can't see it
 
-| 実装                                                                                             | 場所                               |
-| ------------------------------------------------------------------------------------------------ | ---------------------------------- |
-| 図形層だけを支援技術から隠し、テキストラベルは木に残す                                           | `src/a11y.js` の `hideFromAt()`    |
-| 幾何が意味を担うフォーム（waffle / bar / compare）は隠しテーブルを持つ                           | `dataTable()`                      |
-| テキストが既に正しく読めるフォーム（stat / flow / venn）はテーブルを持たない（二重読み上げ回避） | 各フォーム                         |
-| 全フォームが `<figure>` + アクセシブル名（1 単位でスキップできる）                               | `figure()`                         |
-| 隠しテーブルはインラインスタイル（CSS 未読込でも壊れない）                                       | `src/dom.js` の `visuallyHidden()` |
+| Implementation                                                                                            | Where                              |
+| --------------------------------------------------------------------------------------------------------- | ---------------------------------- |
+| Only the shape layer is hidden from assistive tech; text labels stay in the tree                          | `hideFromAt()` in `src/a11y.js`    |
+| Forms where geometry carries meaning (waffle / bar / compare) ship a hidden table                         | `dataTable()`                      |
+| Forms where the text alone is already the full story (stat / flow / venn) skip the table (no double read) | each form                          |
+| Every form is a `<figure>` with an accessible name (skippable as one unit)                                | `figure()`                         |
+| The hidden table uses inline styles (survives even without CSS loaded)                                    | `visuallyHidden()` in `src/dom.js` |
 
-これらは `test/a11y.test.js` でレジストリ全体をループして検証しています。新しいフォームを
-アクセシブル名なしで書くと、書いたその日に落ちます。
+Verified by looping the whole form registry in `test/a11y.test.js` — write a new form with no
+accessible name and it fails the day you write it.
 
-## 12. 幾何がマークアップと同じことを言っていること
+## 12. The geometry says what the markup says
 
-支援技術に渡す意味と、目に見える形が食い違っていないこと。これは実ブラウザでしか検証できません。
+The meaning handed to assistive tech and the shape a sighted reader sees must not disagree. Only a
+real browser can verify this.
 
-**視覚検証**（`document.elementFromPoint` によるヒットテスト。ピクセルはデコードしません）:
+**Visual verification** (hit testing via `document.elementFromPoint` — no pixel decoding):
 
-| 検査                                                                   | 破れると何が起きるか                            |
-| ---------------------------------------------------------------------- | ----------------------------------------------- |
-| 2 円の重なる点に塗られているのが `.ig-venn-circle-ab` であること       | 交差が「第 3 のカテゴリ」に見え、主張と食い違う |
-| 重なりの外では各円が単独で塗られていること                             | レンズが clip されずに全面へ広がっている        |
-| `data-overlap` を変えるとレンズの広さが実際に変わること                | 属性が無視されている                            |
-| waffle が 100 セル・10 列・10 行で、セルが正方形（±0.5px）であること   | 「行を数えれば読める」という前提が崩れる        |
-| 充填セルが先頭から連続していること（43.8% → 先頭 44 個ちょうど）       | 散らばった塗りは数えられず、円グラフに勝てない  |
-| どのテキストもクリップされていないこと（`scrollWidth <= clientWidth`） | ラベルが存在し、正しく、読めない                |
-| テキスト要素同士が重なっていないこと                                   | 直接ラベリングが凡例より読みにくくなる          |
-| 図が親コンテナ / スライドからはみ出さないこと                          | 投影時に端が切れる                              |
+| Check                                                                      | What breaks if this fails                                              |
+| -------------------------------------------------------------------------- | ---------------------------------------------------------------------- |
+| The point where the two circles overlap is painted as `.ig-venn-circle-ab` | The intersection reads as "a third category," contradicting the claim  |
+| Outside the overlap, each circle paints alone                              | The lens isn't clipped and spreads across the whole shape              |
+| Changing `data-overlap` actually changes how wide the lens is              | The attribute is being ignored                                         |
+| Waffle is 100 cells, 10 columns, 10 rows, cells square within ±0.5px       | The "count the rows to read it" premise breaks                         |
+| Filled cells run contiguous from the start (43.8% → exactly the first 44)  | Scattered fill can't be counted — loses to a pie chart on its own turf |
+| No text is clipped (`scrollWidth <= clientWidth`)                          | A label exists, is correct, and can't be read                          |
+| No two text elements overlap                                               | Direct labelling ends up harder to read than a legend                  |
+| A figure never spills outside its container / slide                        | Edges get cut off when projected                                       |
 
-`clip-path` はヒットテストにも作用するため、レンズの clip が壊れれば即座に落ちます。
-サンプリング座標は `src/design/tokens.js` の `VENN` と `centerDistance()` から計算しており、
-マジックナンバーではありません — キャンバスや半径を変えても同じ特徴を狙い続けます。
+`clip-path` participates in hit testing too, so if the lens clip ever breaks, this fails
+immediately. Sample coordinates are computed from `VENN` and `centerDistance()` in
+`src/design/tokens.js`, not hand-picked numbers — they keep targeting the same feature of the
+drawing even if the canvas or radius changes.

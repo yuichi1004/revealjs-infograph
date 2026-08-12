@@ -1,9 +1,9 @@
 <!doctype html>
-<html lang="ja">
+<html lang="en">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>revealjs-infograph — フォーム一覧</title>
+    <title>revealjs-infograph — form gallery</title>
     <script type="module" src="./main.js"></script>
   </head>
   <body>
@@ -11,24 +11,25 @@
       <div class="slides">
         <section class="center">
           <p class="kicker">REVEALJS-INFOGRAPH</p>
-          <h1>認知科学に基づく<br />インフォグラフ</h1>
+          <h1>Cognitive-science-grounded<br />infographics</h1>
           <p class="subtle">
-            属性を書くだけ。座標も配色も凡例配置も、プラグインが決めます。<br />
-            以下は組み込みフォームの全一覧です。
+            Just write attributes. The plugin decides coordinates, colours, and legend placement.<br />
+            Below is every built-in form.
           </p>
           <aside class="notes">
-            このデッキは playground 兼ドキュメント。フォームを追加したらここに 1 枚足す。
+            This deck doubles as the playground and the living documentation. Add a slide here
+            whenever a form is added.
           </aside>
         </section>
 
         <!-- ---------------------------------------------------- stat -->
         <section class="center">
-          <p class="kicker">STAT — 単一の主役数値</p>
+          <p class="kicker">STAT — a single headline number</p>
           <div
             data-infograph="stat"
             data-value="43.8%"
-            data-label="回答者が「文化統合が成果に効いた」と回答"
-            data-note="n=1,204 / 2026年社内調査"
+            data-label="Respondents who say culture integration drove the results"
+            data-note="n=1,204 · 2026 internal survey"
           ></div>
           <pre class="src"><code>&lt;div data-infograph="stat" data-value="43.8%"
      data-label="…" data-note="n=1,204"&gt;&lt;/div&gt;</code></pre>
@@ -36,115 +37,116 @@
 
         <!-- -------------------------------------------------- waffle -->
         <section class="center">
-          <p class="kicker">WAFFLE — 全体に対する割合</p>
-          <div data-infograph="waffle" data-value="43.8%" data-label="同意した回答者"></div>
+          <p class="kicker">WAFFLE — a share of the whole</p>
+          <div data-infograph="waffle" data-value="43.8%" data-label="Respondents who agreed"></div>
           <pre class="src"><code>&lt;div data-infograph="waffle" data-value="43.8%"
-     data-label="同意した回答者"&gt;&lt;/div&gt;</code></pre>
+     data-label="Respondents who agreed"&gt;&lt;/div&gt;</code></pre>
         </section>
 
         <!-- ----------------------------------------------------- bar -->
         <section class="center">
-          <p class="kicker">BAR — 量の比較（強調は 1 つ）</p>
-          <div data-infograph="bar" data-label="週あたりの稼働場所" data-emphasis="3">
-            <div data-item="在宅" data-value="34"></div>
-            <div data-item="出社" data-value="52"></div>
-            <div data-item="ハイブリッド" data-value="71"></div>
+          <p class="kicker">BAR — comparing quantities (one emphasis)</p>
+          <div data-infograph="bar" data-label="Where people work each week" data-emphasis="3">
+            <div data-item="Remote" data-value="34"></div>
+            <div data-item="Office" data-value="52"></div>
+            <div data-item="Hybrid" data-value="71"></div>
           </div>
           <pre class="src"><code>&lt;div data-infograph="bar" data-emphasis="3"&gt;
-  &lt;div data-item="在宅" data-value="34"&gt;&lt;/div&gt;
+  &lt;div data-item="Remote" data-value="34"&gt;&lt;/div&gt;
   …
 &lt;/div&gt;</code></pre>
         </section>
 
-        <!-- 短い記法。同じ図が 1 行で書ける -->
+        <!-- The same figure, written on one line -->
         <section class="center">
-          <p class="kicker">BAR — 短い記法</p>
-          <div data-infograph="bar" data-items="在宅: 34, 出社: 52, ハイブリッド: 71"></div>
+          <p class="kicker">BAR — shorthand notation</p>
+          <div data-infograph="bar" data-items="Remote: 34, Office: 52, Hybrid: 71"></div>
           <pre class="src"><code>&lt;div data-infograph="bar"
-     data-items="在宅: 34, 出社: 52, ハイブリッド: 71"&gt;&lt;/div&gt;</code></pre>
+     data-items="Remote: 34, Office: 52, Hybrid: 71"&gt;&lt;/div&gt;</code></pre>
         </section>
 
         <!-- ---------------------------------------------------- flow -->
         <section class="center">
-          <p class="kicker">FLOW — 順序のある段階</p>
+          <p class="kicker">FLOW — stages in order</p>
           <div data-infograph="flow" data-ig-fragment="steps">
-            <div data-step="課題">分断されたチーム</div>
-            <div data-step="介入">文化統合</div>
-            <div data-step="結果">リードタイム 66% 短縮</div>
+            <div data-step="Problem">Fragmented teams</div>
+            <div data-step="Intervention">Culture integration</div>
+            <div data-step="Result">66% shorter lead time</div>
           </div>
           <p class="subtle small">
-            <code>data-ig-fragment="steps"</code> で 1 段階ずつ提示（→ キーで進む）
+            <code>data-ig-fragment="steps"</code> presents one stage at a time (press → to advance)
           </p>
         </section>
 
         <!-- ------------------------------------------------- compare -->
         <section class="center">
-          <p class="kicker">COMPARE — 2 時点の対比と差分</p>
-          <div data-infograph="compare" data-label="平均リードタイム">
-            <div data-item="導入前" data-value="18日"></div>
-            <div data-item="導入後" data-value="6日"></div>
+          <p class="kicker">COMPARE — two points in time, and the delta</p>
+          <div data-infograph="compare" data-label="Average lead time">
+            <div data-item="Before" data-value="18 days"></div>
+            <div data-item="After" data-value="6 days"></div>
           </div>
-          <p class="subtle small">差分は自動計算。聴衆に暗算をさせない。</p>
+          <p class="subtle small">
+            The delta is computed automatically. Never make the audience do the arithmetic.
+          </p>
         </section>
 
         <!-- ---------------------------------------------------- venn -->
         <section class="center">
-          <p class="kicker">VENN — 重なりが主題のとき</p>
+          <p class="kicker">VENN — when the overlap is the point</p>
           <div
             data-infograph="venn"
-            data-a="内製開発"
-            data-b="グローバル化"
-            data-ab="文化統合"
+            data-a="In-house development"
+            data-b="Globalization"
+            data-ab="Culture integration"
             data-overlap="0.35"
           ></div>
         </section>
 
-        <!-- 重なり量は属性ひとつ。auto-animate で連続変化させられる -->
+        <!-- The overlap is one attribute — auto-animate can morph it continuously -->
         <section class="center" data-auto-animate>
-          <p class="kicker">VENN — 重なりを動かす</p>
+          <p class="kicker">VENN — animating the overlap</p>
           <div
             data-infograph="venn"
             data-id="thesis"
-            data-a="内製開発"
-            data-b="グローバル化"
-            data-ab="文化統合"
+            data-a="In-house development"
+            data-b="Globalization"
+            data-ab="Culture integration"
             data-overlap="0.05"
           ></div>
         </section>
         <section class="center" data-auto-animate>
-          <p class="kicker">VENN — 重なりを動かす</p>
+          <p class="kicker">VENN — animating the overlap</p>
           <div
             data-infograph="venn"
             data-id="thesis"
-            data-a="内製開発"
-            data-b="グローバル化"
-            data-ab="文化統合"
+            data-a="In-house development"
+            data-b="Globalization"
+            data-ab="Culture integration"
             data-overlap="0.55"
           ></div>
         </section>
 
         <!-- ---------------------------------------------------- auto -->
         <section class="center">
-          <p class="kicker">AUTO — 意図からフォームを選ばせる</p>
+          <p class="kicker">AUTO — let intent choose the form</p>
           <div
             data-infograph="auto"
             data-intent="part-of-whole"
             data-value="62%"
-            data-label="定着率"
+            data-label="Retention rate"
           ></div>
           <pre class="src"><code>&lt;div data-infograph="auto" data-intent="part-of-whole"
-     data-value="62%" data-label="定着率"&gt;&lt;/div&gt;</code></pre>
+     data-value="62%" data-label="Retention rate"&gt;&lt;/div&gt;</code></pre>
           <p class="subtle small">
-            part-of-whole → waffle。compare / change / flow / overlap / single
-            も同様に解決されます。
+            part-of-whole → waffle. compare / change / flow / overlap / single resolve the same way.
           </p>
         </section>
 
         <section class="center">
-          <p class="kicker">検証</p>
+          <p class="kicker">Verified</p>
           <p class="subtle">
-            配色は CI でコントラスト比と色覚多様性の ΔE を検証しています。<br />
-            <code>npm run validate:palette</code> で表を確認できます。
+            The palette is checked in CI for contrast ratio and colour-vision-deficiency ΔE.<br />
+            <code>npm run validate:palette</code> prints the table.
           </p>
         </section>
       </div>
