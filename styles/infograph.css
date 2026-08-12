@@ -1,0 +1,551 @@
+/*
+ * revealjs-infograph — the visual layer.
+ *
+ * Every value a host deck might want to change is a custom property, and every
+ * custom property falls back to the host's own token before falling back to
+ * ours:
+ *
+ *   --ig-mark-1: var(--c-blue, #2a78d6);
+ *
+ * So a deck that already defines --c-blue gets its own brand colour with no
+ * configuration, a deck that defines --ig-mark-1 overrides deliberately, and a
+ * deck that defines neither gets the validated palette from
+ * src/design/palette.js. Those defaults are asserted against contrast and
+ * colour-vision floors by test/palette.test.js — change them here and the
+ * numbers there stop describing reality, so change them in both.
+ *
+ * Load order: after the reveal.js theme, before (or alongside) the deck's own
+ * overrides.
+ *
+ * Nothing in this file uses !important. If a rule here is losing to a deck's
+ * stylesheet, the deck is meant to win.
+ */
+
+/*
+ * Declared twice, on purpose.
+ *
+ * `:root` is what makes the tokens exist at all on a page with no reveal.js —
+ * the `renderAll()` path this package documents and exports. Scoping them to
+ * `.reveal` alone (the first version of this file) left every colour rule
+ * referencing an undefined variable outside a deck, which silently computes to
+ * `unset`: transparent bar fills, headline numbers falling back to inherited
+ * body text. Caught by test/visual/principles.spec.js, which renders the
+ * figures without a deck around them.
+ *
+ * The `.reveal` copy then re-resolves the same `var(--c-*, …)` chains from
+ * inside the deck, so a host theme that defines its tokens on `.reveal` rather
+ * than `:root` is still picked up, and wins by specificity.
+ */
+:root,
+.reveal {
+  /* ---- Marks: fills for large shapes. Never small text. ---- */
+  --ig-mark-1: var(--c-blue, #2a78d6);
+  --ig-mark-2: var(--c-orange, #eb6834);
+  --ig-mark-3: var(--c-aqua, #1baf7a);
+
+  /* ---- Inks: the same hues, darkened past 4.5:1 for type. ---- */
+  --ig-ink-1: var(--c-blue-deep, #1c5cab);
+  --ig-ink-2: var(--c-orange-deep, #b23f14);
+  --ig-ink-3: var(--c-aqua-deep, #0d7a53);
+
+  /* ---- Chrome ---- */
+  --ig-surface: var(--surface, #fcfcfb);
+  --ig-surface-2: var(--surface-2, #f4f3ef);
+  --ig-text: var(--ink, #16202c);
+  --ig-text-2: var(--ink-2, #52514e);
+  --ig-muted: var(--muted-mark, #c9c8c2);
+  --ig-hairline: var(--hairline, #e1e0d9);
+
+  /* ---- Scale ---- */
+  --ig-gap: 1rem;
+  --ig-radius: 6px;
+  --ig-figure-width: 42rem;
+
+  --ig-value-size: 3.2rem;
+  --ig-label-size: 1.25rem;
+  --ig-note-size: 0.95rem;
+
+  /* ---- Motion (overwritten per figure by motion.js) ---- */
+  --ig-enter-duration: 600ms;
+  --ig-enter-delay: 0ms;
+  --ig-enter-stagger: 18ms;
+  --ig-i: 0;
+}
+
+/* ---------- Figure shell ---------- */
+
+.ig-host {
+  display: contents; /* the authored div never affects layout; the figure does */
+}
+
+.ig-figure {
+  margin: 0;
+  color: var(--ig-text);
+  max-width: var(--ig-figure-width);
+  width: 100%;
+  text-align: left;
+}
+
+.reveal .slides section.center .ig-figure,
+.ig-figure-stat {
+  margin-inline: auto;
+}
+
+.ig-caption {
+  margin-top: 0.7em;
+  font-size: var(--ig-note-size);
+  color: var(--ig-text-2);
+  line-height: 1.4;
+}
+
+.ig-table {
+  border-collapse: collapse;
+}
+
+/* ---------- stat ---------- */
+
+.ig-stat {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25em;
+  text-align: center;
+}
+
+.ig-stat-value {
+  font-size: var(--ig-value-size);
+  font-weight: 800;
+  line-height: 1;
+  letter-spacing: -0.02em;
+  color: var(--ig-ink-1);
+  /*
+   * Proportional figures, not tabular: a headline number is read as a word, and
+   * tabular spacing makes it look like a spreadsheet cell. (Tabular numerals
+   * are the right call inside the bar and compare forms, where values stack and
+   * their digit alignment carries meaning — see below.)
+   */
+  font-variant-numeric: proportional-nums;
+}
+
+.ig-stat-label {
+  font-size: var(--ig-label-size);
+  color: var(--ig-text);
+  font-weight: 600;
+}
+
+.ig-stat-note {
+  font-size: var(--ig-note-size);
+  color: var(--ig-text-2);
+}
+
+/* ---------- waffle ---------- */
+
+.ig-waffle {
+  display: flex;
+  flex-direction: column;
+  gap: 0.9em;
+  align-items: flex-start;
+}
+
+.ig-waffle-grid {
+  display: grid;
+  grid-template-columns: repeat(var(--ig-waffle-columns, 10), 1fr);
+  gap: 5px;
+  width: min(20rem, 100%);
+}
+
+.ig-waffle-cell {
+  aspect-ratio: 1;
+  border-radius: 3px;
+  background: var(--ig-surface-2);
+  /*
+   * The unfilled cells need to read as "the rest of the whole", not as a second
+   * category — hence a near-surface gray rather than a second hue. They still
+   * need a visible edge against the surface, which the border supplies without
+   * adding another value to the fill.
+   */
+  box-shadow: inset 0 0 0 1px var(--ig-hairline);
+}
+
+.ig-waffle-cell-on {
+  background: var(--ig-mark-1);
+  box-shadow: none;
+}
+
+.ig-waffle-legend {
+  display: flex;
+  align-items: baseline;
+  gap: 0.5em;
+  flex-wrap: wrap;
+}
+
+.ig-waffle-value {
+  font-size: 2.4rem;
+  font-weight: 800;
+  line-height: 1;
+  color: var(--ig-ink-1);
+}
+
+.ig-waffle-label {
+  font-size: var(--ig-label-size);
+  color: var(--ig-text-2);
+}
+
+/* ---------- bar ---------- */
+
+/*
+ * One grid for the whole chart — not one per row.
+ *
+ * Three columns, with the label column at `max-content` so every bar starts at
+ * the same x. That shared left edge is the "common scale" the form's accuracy
+ * claim rests on: a ragged start turns length comparison back into the
+ * estimation task the form exists to avoid.
+ *
+ * The first version of this gave each `.ig-bar-row` its own grid, which reads
+ * the same and is wrong — a grid only sizes its own columns, so three rows sized
+ * three independent label columns and the bars began at three different x
+ * positions (36px apart with the labels in examples/). Every unit test still
+ * passed, because the DOM was correct and only the layout was not.
+ * `display: contents` on the row hands its three cells to this grid instead, so
+ * one column sizing serves them all.
+ */
+.ig-bar {
+  display: grid;
+  grid-template-columns: minmax(6ch, max-content) 1fr max-content;
+  align-items: center;
+  gap: 0.55em 0.9em;
+  width: 100%;
+}
+
+.ig-bar-row {
+  display: contents;
+}
+
+.ig-bar-name {
+  font-size: var(--ig-label-size);
+  color: var(--ig-text);
+  text-align: right;
+}
+
+.ig-bar-track {
+  height: 1.5em;
+  background: transparent;
+}
+
+.ig-bar-fill {
+  height: 100%;
+  width: var(--ig-bar-length, 0%);
+  background: var(--ig-bar-fill, var(--ig-mark-1));
+  border-radius: 0 var(--ig-radius) var(--ig-radius) 0;
+}
+
+.ig-bar-value {
+  font-size: var(--ig-label-size);
+  font-weight: 700;
+  color: var(--ig-text);
+  font-variant-numeric: tabular-nums;
+}
+
+.ig-bar-row-on .ig-bar-name,
+.ig-bar-row-on .ig-bar-value {
+  color: var(--ig-ink-1);
+}
+
+/* ---------- flow ---------- */
+
+.ig-flow {
+  display: flex;
+  align-items: stretch;
+  justify-content: center;
+  gap: 0.6em;
+  flex-wrap: wrap;
+}
+
+.ig-flow-step {
+  flex: 1 1 0;
+  min-width: 8rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.3em;
+  padding: 0.9em 1em;
+  border: 1px solid var(--ig-hairline);
+  border-radius: var(--ig-radius);
+  background: var(--ig-surface);
+}
+
+.ig-flow-step-on {
+  border-color: var(--ig-mark-1);
+  box-shadow: inset 0 0 0 1px var(--ig-mark-1);
+}
+
+.ig-flow-step-label {
+  font-size: var(--ig-note-size);
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ig-ink-1);
+}
+
+.ig-flow-step-body {
+  font-size: var(--ig-label-size);
+  color: var(--ig-text);
+  line-height: 1.35;
+}
+
+.ig-flow-arrow {
+  flex: 0 0 auto;
+  align-self: center;
+  display: flex;
+  align-items: center;
+  color: var(--ig-text-2);
+}
+
+.ig-flow-arrow-line {
+  width: 1.4em;
+  height: 2px;
+  background: currentColor;
+}
+
+.ig-flow-arrow-head {
+  width: 0;
+  height: 0;
+  border-top: 5px solid transparent;
+  border-bottom: 5px solid transparent;
+  border-left: 7px solid currentColor;
+}
+
+.ig-flow-compact .ig-flow-step {
+  padding: 0.6em 0.7em;
+}
+
+/* ---------- compare ---------- */
+
+.ig-compare {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6em;
+  align-items: center;
+  text-align: center;
+}
+
+.ig-compare-title {
+  font-size: var(--ig-label-size);
+  color: var(--ig-text-2);
+}
+
+.ig-compare-row {
+  display: flex;
+  align-items: center;
+  gap: 1.6em;
+}
+
+.ig-compare-side {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2em;
+}
+
+.ig-compare-value {
+  font-size: 2.8rem;
+  font-weight: 800;
+  line-height: 1;
+  color: var(--ig-text-2);
+  font-variant-numeric: tabular-nums;
+}
+
+.ig-compare-side-on .ig-compare-value {
+  color: var(--ig-ink-1);
+}
+
+.ig-compare-name {
+  font-size: var(--ig-note-size);
+  color: var(--ig-text-2);
+}
+
+/*
+ * Text-safe grey, not --ig-muted.
+ *
+ * This arrow was --ig-muted (a de-emphasis fill for bars), which put a glyph on
+ * screen at 1.63:1 — technically present, practically not there. It is not
+ * decoration: it is the only thing stating which value came first, the same job
+ * the flow connector does. Something that carries direction has to be visible.
+ */
+.ig-compare-arrow {
+  font-size: 1.8rem;
+  color: var(--ig-text-2);
+}
+
+.ig-compare-delta {
+  font-size: var(--ig-label-size);
+  font-weight: 700;
+  color: var(--ig-ink-1);
+  font-variant-numeric: tabular-nums;
+}
+
+/*
+ * Down is not red. A drop in lead time is the good news on half the slides this
+ * form will ever appear on, and green/red would assert the opposite. Direction
+ * is already carried by the sign and the arrow; colour here would only add a
+ * claim the data does not make.
+ */
+.ig-compare-delta-down {
+  color: var(--ig-ink-1);
+}
+
+/* ---------- venn ---------- */
+
+.ig-venn {
+  position: relative;
+  width: min(30rem, 100%);
+  margin-inline: auto;
+  /* Room under the circles for the labels, which are absolutely positioned. */
+  padding-bottom: 3.2em;
+}
+
+.ig-venn-svg {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.ig-venn-circle {
+  fill-opacity: 0.9;
+}
+
+.ig-venn-circle-a {
+  fill: var(--ig-mark-1);
+}
+
+.ig-venn-circle-b {
+  fill: var(--ig-mark-2);
+}
+
+.ig-venn-circle-ab {
+  fill: var(--ig-mark-3);
+  fill-opacity: 1;
+}
+
+.ig-venn-labels {
+  position: absolute;
+  inset: auto 0 0 0;
+  height: 3.2em;
+}
+
+.ig-venn-label {
+  position: absolute;
+  left: var(--ig-venn-x, 50%);
+  white-space: nowrap;
+  font-size: var(--ig-label-size);
+  font-weight: 700;
+}
+
+/*
+ * Anchored at their circle's centre and pointing outward — A's right edge and
+ * B's left edge land on their own circle, rather than both labels being centred
+ * on it.
+ *
+ * Centring was the first version and collides: as `data-overlap` grows the two
+ * centres converge, and at 0.55 the two labels overlapped by ~490px² of each
+ * other. Two set names sitting on top of one another is a worse failure than
+ * anything the form was avoiding by not using a legend. Anchoring outward makes
+ * the gap between them equal to the distance between the circle centres, so it
+ * shrinks with the geometry but never reaches zero — the 0.35em keeps a gap
+ * even at `data-overlap="1"`.
+ */
+.ig-venn-label-a {
+  top: 0;
+  color: var(--ig-ink-1);
+  transform: translateX(calc(-100% - 0.35em));
+}
+
+.ig-venn-label-b {
+  top: 0;
+  color: var(--ig-ink-2);
+  transform: translateX(0.35em);
+}
+
+/*
+ * The intersection label sits on a second line, under the other two. Its colour
+ * is the *ink* variant, never the mark: --ig-mark-3 is the one fill in the
+ * palette that does not clear 4.5:1 on a light surface, which is fine for a
+ * shape and not fine for a word.
+ */
+.ig-venn-label-ab {
+  top: 1.6em;
+  color: var(--ig-ink-3);
+  transform: translateX(-50%);
+}
+
+/* ---------- Entrance animation ---------- */
+
+/*
+ * Animation is additive: `.ig-enter` plays a keyframe that *ends* at the
+ * resting appearance defined above. Without the class — no JS, print export,
+ * reduced motion — the figure is already in its final state. See src/motion.js.
+ */
+
+@keyframes ig-rise {
+  from {
+    opacity: 0;
+    transform: translateY(0.4em);
+  }
+}
+
+@keyframes ig-grow-x {
+  from {
+    transform: scaleX(0);
+  }
+}
+
+@keyframes ig-pop {
+  from {
+    opacity: 0;
+    transform: scale(0.82);
+  }
+}
+
+.ig-enter .ig-stat-value,
+.ig-enter .ig-stat-label,
+.ig-enter .ig-stat-note,
+.ig-enter .ig-flow-step,
+.ig-enter .ig-flow-arrow,
+.ig-enter .ig-compare-side,
+.ig-enter .ig-compare-delta,
+.ig-enter .ig-waffle-legend {
+  animation: ig-rise var(--ig-enter-duration) ease-out backwards;
+  animation-delay: calc(var(--ig-enter-delay) + var(--ig-i) * var(--ig-enter-stagger));
+}
+
+.ig-enter .ig-bar-fill {
+  transform-origin: left center;
+  animation: ig-grow-x var(--ig-enter-duration) cubic-bezier(0.22, 0.61, 0.36, 1) backwards;
+  animation-delay: calc(var(--ig-enter-delay) + var(--ig-i) * 60ms);
+}
+
+.ig-enter .ig-waffle-cell-on,
+.ig-enter .ig-venn-circle {
+  animation: ig-pop var(--ig-enter-duration) ease-out backwards;
+  /* Waffle cells stagger fast: 100 × 18ms would take longer than the sentence
+     the speaker is saying over it. */
+  animation-delay: calc(var(--ig-enter-delay) + var(--ig-i) * 6ms);
+  transform-origin: center;
+}
+
+.ig-enter .ig-venn-circle {
+  animation-delay: calc(var(--ig-enter-delay) + var(--ig-i) * 120ms);
+}
+
+/*
+ * Belt and braces. motion.js already refuses to add `.ig-enter` when the user
+ * asks for reduced motion, but a deck that ships the CSS and drives the class
+ * itself should still get the same courtesy.
+ */
+@media (prefers-reduced-motion: reduce) {
+  .ig-enter * {
+    animation: none !important;
+  }
+}
+
+/* reveal.js print export: no animation, and never a hidden initial state. */
+.reveal.print-pdf .ig-enter * {
+  animation: none !important;
+}

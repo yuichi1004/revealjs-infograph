@@ -1,0 +1,58 @@
+/*
+ * The fixture's own chrome. Deliberately minimal and deliberately *not* a theme:
+ * it defines none of the --c-* or --ig-* variables, so every figure on this page
+ * is running on the package's built-in defaults. A regression in those defaults
+ * shows up here rather than being masked by a host theme.
+ *
+ * The one thing it does set is the font, because unpinned fonts are the main
+ * source of screenshot noise.
+ */
+
+:root {
+  --fixture-gutter: 48px;
+  --fixture-stage: 640px;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+  background: #fcfcfb;
+  font-family: 'Inter Variable', sans-serif;
+  /* Matches reveal's own rendering closely enough that a figure tuned here does
+     not need re-tuning on a slide. */
+  font-size: 16px;
+  color: #16202c;
+}
+
+#cases {
+  display: flex;
+  flex-direction: column;
+  gap: var(--fixture-gutter);
+  padding: var(--fixture-gutter);
+  width: 1280px;
+  box-sizing: border-box;
+}
+
+.case-title {
+  margin: 0 0 12px;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: #898781;
+}
+
+/*
+ * A fixed-width box around each figure. Fixed, not fluid: "the figure fits its
+ * container" is only a meaningful assertion when the container's width is not
+ * itself derived from the figure.
+ */
+.case-stage {
+  width: var(--fixture-stage);
+  box-sizing: border-box;
+  padding: 16px;
+  border: 1px solid #e1e0d9;
+  border-radius: 8px;
+  background: #fcfcfb;
+}

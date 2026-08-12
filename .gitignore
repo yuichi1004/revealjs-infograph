@@ -1,0 +1,15 @@
+node_modules/
+dist/
+types/
+coverage/
+*.tgz
+.DS_Store
+*.log
+dist-pages/
+
+# Playwright run output. test/visual/__screenshots__/ is NOT ignored — the
+# baselines are the point.
+test-results/
+playwright-report/
+blob-report/
+.playwright/
