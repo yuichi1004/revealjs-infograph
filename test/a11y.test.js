@@ -30,6 +30,12 @@ const SAMPLES = {
               <li>Esteem</li>
               <li>Physiological needs</li>
             </ul></div>`,
+  cycle: `<div data-infograph="cycle"><ul>
+            <li>Plan</li>
+            <li>Do</li>
+            <li>Check</li>
+            <li>Act</li>
+          </ul></div>`,
   quadrant: `<div data-infograph="quadrant" data-x-label="Urgent" data-y-label="Important">
                <div data-label="Do First"><ul><li>Fix production bug</li></ul></div>
                <div data-label="Schedule"><ul><li>Plan Q3 roadmap</li></ul></div>
@@ -75,10 +81,13 @@ describe.each(Object.entries(SAMPLES))('%s', (form, html) => {
   it('renders identically twice — no id or state leaks between figures', () => {
     const a = render(html);
     const b = render(html);
-    // venn mints a unique clip id per figure by design; everything else must
-    // be byte-identical, or two copies of a figure on one deck would differ.
+    // venn and cycle each mint a unique id per figure by design; everything
+    // else must be byte-identical, or two copies of a figure on one deck
+    // would differ.
     const strip = (/** @type {HTMLElement} */ node) =>
-      node.innerHTML.replace(/ig-venn-clip-\d+/g, 'ig-venn-clip-N');
+      node.innerHTML
+        .replace(/ig-venn-clip-\d+/g, 'ig-venn-clip-N')
+        .replace(/ig-cycle-arrow-\d+/g, 'ig-cycle-arrow-N');
     expect(strip(a)).toBe(strip(b));
   });
 });
@@ -94,7 +103,7 @@ describe('tabular fallback', () => {
     expect(table?.querySelectorAll('th[scope="row"]').length).toBeGreaterThan(0);
   });
 
-  it.each(['stat', 'flow', 'venn', 'pyramid', 'quadrant'])(
+  it.each(['stat', 'flow', 'venn', 'pyramid', 'cycle', 'quadrant'])(
     '%s needs no table — its text already reads',
     (form) => {
       // Duplicating text that is already in the accessible tree makes a screen

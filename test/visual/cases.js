@@ -151,6 +151,18 @@ export const CASES = [
   },
 
   {
+    id: 'cycle',
+    title: 'cycle — PDCA',
+    html: `<div data-infograph="cycle"><ul>
+             <li>Plan</li>
+             <li>Do</li>
+             <li>Check</li>
+             <li>Act</li>
+           </ul></div>`,
+    note: 'Connectors are real arcs, not straight chords, and the loop closes back to the first stage.',
+  },
+
+  {
     id: 'quadrant',
     title: 'quadrant — Eisenhower matrix',
     html: `<div data-infograph="quadrant" data-x-label="Urgent" data-y-label="Important">

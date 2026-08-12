@@ -654,6 +654,76 @@
   font-weight: 700;
 }
 
+/* ---------- cycle ---------- */
+
+/*
+ * Square, unlike venn's wide canvas — the shape is a ring, not two circles
+ * side by side. No fixed padding: labels sit outside the ring (see
+ * src/forms/cycle.js), so the container just needs to stay square as it
+ * scales; how much clearance that leaves them is tuned in src/design/tokens.js
+ * (CYCLE.labelRadius), not here.
+ */
+.ig-cycle {
+  position: relative;
+  width: min(22rem, 100%);
+  aspect-ratio: var(--ig-cycle-ratio, 1);
+  margin-inline: auto;
+}
+
+.ig-cycle-svg {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.ig-cycle-node {
+  fill: var(--ig-cycle-fill, var(--ig-mark-1));
+}
+
+/*
+ * Connectors are chrome, not a mark — the same rule flow's arrows follow.
+ * They state structure, not data, so they stay one neutral colour regardless
+ * of which stage is emphasised.
+ */
+.ig-cycle-arrow {
+  fill: none;
+  stroke: var(--ig-text-2);
+  stroke-width: 2.5;
+}
+
+.ig-cycle-arrow-head {
+  fill: var(--ig-text-2);
+}
+
+.ig-cycle-labels {
+  position: absolute;
+  inset: 0;
+  /*
+   * Unlike venn's label strip (which sits below the circles and never
+   * overlaps them), this layer covers the whole ring so every label can be
+   * positioned anywhere around it — including directly over the SVG. Without
+   * this, the (invisible) full-coverage div would intercept every pointer
+   * event and hit-test over the ring, arcs included, even where no label text
+   * actually is.
+   */
+  pointer-events: none;
+}
+
+.ig-cycle-label {
+  position: absolute;
+  left: var(--ig-cycle-x, 50%);
+  top: var(--ig-cycle-y, 50%);
+  transform: translate(-50%, -50%);
+  white-space: nowrap;
+  font-size: var(--ig-label-size);
+  color: var(--ig-text);
+}
+
+.ig-cycle-label-on {
+  color: var(--ig-ink-1);
+  font-weight: 700;
+}
+
 /* ---------- quadrant ---------- */
 
 /*
@@ -786,6 +856,7 @@
 .ig-enter .ig-waffle-legend,
 .ig-enter .ig-pyramid-band,
 .ig-enter .ig-pyramid-label,
+.ig-enter .ig-cycle-label,
 .ig-enter .ig-quadrant-cell {
   animation: ig-rise var(--ig-enter-duration) ease-out backwards;
   animation-delay: calc(var(--ig-enter-delay) + var(--ig-i) * var(--ig-enter-stagger));
@@ -826,6 +897,14 @@
 
 .ig-enter .ig-venn-circle {
   animation-delay: calc(var(--ig-enter-delay) + var(--ig-i) * 120ms);
+}
+
+/* A handful of nodes, not a hundred cells — same reasoning as venn's circles,
+   a stagger slow enough to actually perceive. */
+.ig-enter .ig-cycle-node {
+  animation: ig-pop var(--ig-enter-duration) ease-out backwards;
+  animation-delay: calc(var(--ig-enter-delay) + var(--ig-i) * 100ms);
+  transform-origin: center;
 }
 
 /*

@@ -214,6 +214,25 @@ Boxes in a row read as a Gestalt "group" by proximity alone. Something has to st
 sits **inside the horizontal gap** between its two neighbouring stages (never floating off an
 end), and every stage shares the same top edge.
 
+**`cycle` states the same principle for a loop instead of a line.** A closed process draws one
+connector _per stage_, not per-stage-minus-one — the last one closes back to the first, and that
+closure is the entire reason `cycle` is a separate form from `flow`. Two things this form adds on
+top of flow's rule:
+
+- **Connectors are real arcs, not straight chords.** A polygon drawn between evenly-spaced points
+  isn't wrong exactly, but for four stages it's a rhombus, not the ring the form claims to draw —
+  the shape has to actually be circular for the "cycle" reading to hold.
+- **The accessible name states the closure explicitly** ("Plan → Do → Check → Act → Plan"), because
+  DOM order alone — which is what carries the sequence for `flow` — doesn't convey that the last
+  item leads back to the first. This is the one place in the package where the accessible name
+  states something the sighted rendering shows _visually_ (the closing arrow) that reading order by
+  itself would not.
+
+**Visual verification**: nodes are equidistant from the figure's centre and angularly ordered
+clockwise from the top; the arc count equals the stage count (not one fewer); and — the direct test
+of the arcs-vs-chords decision — sampling the point a true arc bows out to hits the connector, while
+sampling the straight-line midpoint between the same two nodes instead does not.
+
 ## 8. Never make the audience do mental arithmetic
 
 | Implementation                                                                          | Where                               |
