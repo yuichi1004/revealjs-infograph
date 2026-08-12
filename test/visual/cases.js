@@ -161,6 +161,18 @@ export const CASES = [
            </ul></div>`,
     note: 'Connectors are real arcs, not straight chords, and the loop closes back to the first stage.',
   },
+
+  {
+    id: 'quadrant',
+    title: 'quadrant — Eisenhower matrix',
+    html: `<div data-infograph="quadrant" data-x-label="Urgent" data-y-label="Important">
+             <div data-label="Do First"><ul><li>Fix production bug</li><li>Client deadline today</li></ul></div>
+             <div data-label="Schedule"><ul><li>Plan Q3 roadmap</li></ul></div>
+             <div data-label="Delegate"><ul><li>Answer routine emails</li></ul></div>
+             <div data-label="Eliminate"><ul><li>Check social media</li></ul></div>
+           </div>`,
+    note: 'Four buckets, not a scatter plot: cells must be equal-sized and share the grid edges.',
+  },
 ];
 
 /** @param {string} id */

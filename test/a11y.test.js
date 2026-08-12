@@ -36,6 +36,12 @@ const SAMPLES = {
             <li>Check</li>
             <li>Act</li>
           </ul></div>`,
+  quadrant: `<div data-infograph="quadrant" data-x-label="Urgent" data-y-label="Important">
+               <div data-label="Do First"><ul><li>Fix production bug</li></ul></div>
+               <div data-label="Schedule"><ul><li>Plan Q3 roadmap</li></ul></div>
+               <div data-label="Delegate"><ul><li>Answer routine emails</li></ul></div>
+               <div data-label="Eliminate"><ul><li>Check social media</li></ul></div>
+             </div>`,
 };
 
 it('has a sample for every registered form', () => {
@@ -97,7 +103,7 @@ describe('tabular fallback', () => {
     expect(table?.querySelectorAll('th[scope="row"]').length).toBeGreaterThan(0);
   });
 
-  it.each(['stat', 'flow', 'venn', 'pyramid', 'cycle'])(
+  it.each(['stat', 'flow', 'venn', 'pyramid', 'cycle', 'quadrant'])(
     '%s needs no table — its text already reads',
     (form) => {
       // Duplicating text that is already in the accessible tree makes a screen

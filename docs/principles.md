@@ -104,6 +104,19 @@ describes.
 > legend had produced something harder to read than one. Labels now anchor at the circle's centre
 > and point outward, so they never collide regardless of how much the circles overlap.
 
+**`quadrant` applies the same rule to grid position instead of colour.** A 2×2 cell's meaning comes
+from where it sits relative to two axis labels — exactly the kind of meaning that lives in geometry
+and is invisible to assistive tech unless it's also stated as text. So a cell's `data-label` isn't
+optional decoration; a cell without one advises, because without a title the _only_ way to know what
+that cell represents is inferring it from position, which is precisely the failure mode direct
+labelling exists to rule out everywhere else in this package.
+
+**Visual verification**: the four cells are equal-sized and share the grid's row and column edges
+in the order they were authored in — top-left, top-right, bottom-left, bottom-right — so a CSS
+regression that silently reordered the grid (column-major instead of row-major, say) is caught by
+position, not just by cell count. Each cell's title sits above its own item list, never another
+cell's, and the axis labels sit outside the 2×2 block rather than overlapping it.
+
 ## 4. Signalling — exactly one emphasis
 
 Two things emphasised is the same as none — the eye has nowhere to land.

@@ -497,6 +497,121 @@ describe('cycle', () => {
   });
 });
 
+describe('quadrant', () => {
+  const eisenhower = `<div data-infograph="quadrant" data-x-label="Urgent" data-y-label="Important">
+    <div data-label="Do First"><ul><li>Fix production bug</li><li>Client deadline today</li></ul></div>
+    <div data-label="Schedule"><ul><li>Plan Q3 roadmap</li></ul></div>
+    <div data-label="Delegate"><ul><li>Answer routine emails</li></ul></div>
+    <div data-label="Eliminate"><ul><li>Check social media</li></ul></div>
+  </div>`;
+
+  it('reads four cells in document order, top-left through bottom-right', () => {
+    const figure = render(eisenhower);
+    expect(all(figure, '.ig-quadrant-title').map((el) => el.textContent)).toEqual([
+      'Do First',
+      'Schedule',
+      'Delegate',
+      'Eliminate',
+    ]);
+  });
+
+  it('reads each cell’s own item list', () => {
+    const figure = render(eisenhower);
+    const [first] = all(figure, '.ig-quadrant-cell');
+    expect(all(first, '.ig-quadrant-item').map((el) => el.textContent)).toEqual([
+      'Fix production bug',
+      'Client deadline today',
+    ]);
+  });
+
+  it('reads data-item children the same way <li> works', () => {
+    const figure = render(`<div data-infograph="quadrant">
+      <div data-label="A"><div data-item="x"></div></div>
+      <div data-label="B"><div data-item="y"></div></div>
+      <div data-label="C"><div data-item="z"></div></div>
+      <div data-label="D"><div data-item="w"></div></div>
+    </div>`);
+    expect(all(figure, '.ig-quadrant-item').map((el) => el.textContent)).toEqual([
+      'x',
+      'y',
+      'z',
+      'w',
+    ]);
+  });
+
+  it('reads the data-items shorthand too', () => {
+    const figure = render(`<div data-infograph="quadrant">
+      <div data-label="A" data-items="x, y"></div>
+      <div data-label="B"></div>
+      <div data-label="C"></div>
+      <div data-label="D"></div>
+    </div>`);
+    expect(all(figure, '.ig-quadrant-item').map((el) => el.textContent)).toEqual(['x', 'y']);
+  });
+
+  it('leaves an empty cell empty rather than inventing a placeholder', () => {
+    const figure = render(`<div data-infograph="quadrant">
+      <div data-label="A"></div>
+      <div data-label="B"></div>
+      <div data-label="C"></div>
+      <div data-label="D"></div>
+    </div>`);
+    expect(figure.querySelector('.ig-quadrant-items')).toBeNull();
+  });
+
+  it('highlights one cell with data-emphasis', () => {
+    const figure = render(
+      eisenhower.replace(
+        'data-infograph="quadrant"',
+        'data-infograph="quadrant" data-emphasis="2"',
+      ),
+    );
+    expect(
+      all(figure, '.ig-quadrant-cell').map((el) => el.classList.contains('ig-quadrant-cell-on')),
+    ).toEqual([false, true, false, false]);
+  });
+
+  it('advises when there are not exactly four cells', () => {
+    render(`<div data-infograph="quadrant">
+      <div data-label="A"></div>
+      <div data-label="B"></div>
+      <div data-label="C"></div>
+    </div>`);
+    expect(warnings().join()).toMatch(/exactly four cells/);
+  });
+
+  it('advises when a cell has no title', () => {
+    render(`<div data-infograph="quadrant">
+      <div><ul><li>x</li></ul></div>
+      <div data-label="B"></div>
+      <div data-label="C"></div>
+      <div data-label="D"></div>
+    </div>`);
+    expect(warnings().join()).toMatch(/no data-label/);
+  });
+
+  it('advises when one cell has too many items', () => {
+    const items = Array.from({ length: 7 }, (_, i) => `<li>Task ${i}</li>`).join('');
+    render(`<div data-infograph="quadrant">
+      <div data-label="Busy"><ul>${items}</ul></div>
+      <div data-label="B"></div>
+      <div data-label="C"></div>
+      <div data-label="D"></div>
+    </div>`);
+    expect(warnings().join()).toMatch(/stopped being a priority list/);
+  });
+
+  it('carries no hidden table — every cell is already visible text', () => {
+    expect(render(eisenhower).querySelector('table')).toBeNull();
+  });
+
+  it('states both axes and all four titles in the accessible name', () => {
+    expect(render(eisenhower).getAttribute('aria-label')).toBe(
+      'Urgent vs. Important: Do First, Schedule, Delegate, Eliminate',
+    );
+  });
+});
+
 /*
  * Pictogram marks.
  *
@@ -685,6 +800,7 @@ describe('registry', () => {
       'cycle',
       'flow',
       'pyramid',
+      'quadrant',
       'stat',
       'venn',
       'waffle',

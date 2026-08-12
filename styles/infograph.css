@@ -724,6 +724,100 @@
   font-weight: 700;
 }
 
+/* ---------- quadrant ---------- */
+
+/*
+ * The 2×2 block plus its two axis labels, laid out as one grid so the labels
+ * stay anchored to the block regardless of how tall either row grows. The
+ * bottom-left corner is deliberately empty (`.`) — nothing is ever placed
+ * there, so it is named out rather than left implicit.
+ */
+.ig-quadrant {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  grid-template-rows: 1fr auto;
+  grid-template-areas:
+    'y-label grid'
+    '.       x-label';
+  align-items: center;
+  gap: 0.6em 0.9em;
+  width: 100%;
+}
+
+.ig-quadrant-grid {
+  grid-area: grid;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  grid-template-rows: 1fr 1fr;
+  gap: 0.7em;
+}
+
+.ig-quadrant-x-label,
+.ig-quadrant-y-label {
+  margin: 0;
+  text-align: center;
+  font-size: var(--ig-note-size);
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ig-text-2);
+}
+
+.ig-quadrant-x-label {
+  grid-area: x-label;
+}
+
+.ig-quadrant-y-label {
+  grid-area: y-label;
+  writing-mode: vertical-rl;
+  transform: rotate(180deg);
+  justify-self: center;
+}
+
+/* Reuses flow's card language (border, radius, surface fill) rather than
+   inventing a second bordered-box style for what is visually the same idea. */
+.ig-quadrant-cell {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4em;
+  padding: 0.9em 1em;
+  border: 1px solid var(--ig-hairline);
+  border-radius: var(--ig-radius);
+  background: var(--ig-surface);
+}
+
+.ig-quadrant-cell-on {
+  border-color: var(--ig-mark-1);
+  box-shadow: inset 0 0 0 1px var(--ig-mark-1);
+}
+
+.ig-quadrant-title {
+  margin: 0;
+  font-size: var(--ig-note-size);
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ig-ink-1);
+}
+
+.ig-quadrant-items {
+  margin: 0;
+  padding-left: 1.1em;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25em;
+}
+
+.ig-quadrant-item {
+  font-size: var(--ig-label-size);
+  color: var(--ig-text);
+  line-height: 1.35;
+}
+
+.ig-quadrant-item::marker {
+  color: var(--ig-text-2);
+}
+
 /* ---------- Entrance animation ---------- */
 
 /*
@@ -762,7 +856,8 @@
 .ig-enter .ig-waffle-legend,
 .ig-enter .ig-pyramid-band,
 .ig-enter .ig-pyramid-label,
-.ig-enter .ig-cycle-label {
+.ig-enter .ig-cycle-label,
+.ig-enter .ig-quadrant-cell {
   animation: ig-rise var(--ig-enter-duration) ease-out backwards;
   animation-delay: calc(var(--ig-enter-delay) + var(--ig-i) * var(--ig-enter-stagger));
 }

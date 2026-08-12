@@ -880,6 +880,64 @@ test.describe('cycle: a closed loop, drawn as real arcs', () => {
 });
 
 /* ------------------------------------------------------------------ *
+ * quadrant — four buckets, not a scatter plot
+ * ------------------------------------------------------------------ */
+
+test.describe('quadrant: four equal cells sharing the grid’s edges', () => {
+  test('all four cells are the same size', async ({ page }) => {
+    const cells = await page.evaluate(rectsOf, [stage('quadrant'), '.ig-quadrant-cell']);
+    expect(cells).toHaveLength(4);
+
+    const widths = cells.map((c) => c.width);
+    const heights = cells.map((c) => c.height);
+    expect(Math.max(...widths) - Math.min(...widths), 'cell widths').toBeLessThan(1);
+    expect(Math.max(...heights) - Math.min(...heights), 'cell heights').toBeLessThan(1);
+  });
+
+  test('cells line up on a real 2×2 grid, in authored order', async ({ page }) => {
+    // Document order is top-left, top-right, bottom-left, bottom-right — the
+    // form's whole "just write it in order" contract. If a CSS regression ever
+    // reordered the grid (e.g. column-major instead of row-major), the boxes
+    // would still be four equal rectangles — only their actual positions would
+    // catch it.
+    const [tl, tr, bl, br] = await page.evaluate(rectsOf, [stage('quadrant'), '.ig-quadrant-cell']);
+
+    expect(Math.abs(tl.top - tr.top), 'top row must share a top edge').toBeLessThan(1);
+    expect(Math.abs(bl.top - br.top), 'bottom row must share a top edge').toBeLessThan(1);
+    expect(Math.abs(tl.left - bl.left), 'left column must share a left edge').toBeLessThan(1);
+    expect(Math.abs(tr.left - br.left), 'right column must share a left edge').toBeLessThan(1);
+
+    expect(tr.left, 'top-right must sit right of top-left').toBeGreaterThan(tl.right - 1);
+    expect(bl.top, 'bottom-left must sit below top-left').toBeGreaterThan(tl.bottom - 1);
+  });
+
+  test('each cell’s title sits above its own item list, not another cell’s', async ({ page }) => {
+    const cells = await page.locator(`${stage('quadrant')} .ig-quadrant-cell`).all();
+    expect(cells).toHaveLength(4);
+
+    for (const cell of cells) {
+      const title = await cell.locator('.ig-quadrant-title').boundingBox();
+      const items = await cell.locator('.ig-quadrant-items').boundingBox();
+      if (!title || !items) continue; // an empty cell has no item list to check
+      expect(title.y, 'title must sit above its own item list').toBeLessThan(items.y);
+    }
+  });
+
+  test('axis labels sit outside the 2×2 block', async ({ page }) => {
+    const grid = (await page.evaluate(rectsOf, [stage('quadrant'), '.ig-quadrant-grid']))[0];
+    const [xLabel] = await page.evaluate(rectsOf, [stage('quadrant'), '.ig-quadrant-x-label']);
+    const [yLabel] = await page.evaluate(rectsOf, [stage('quadrant'), '.ig-quadrant-y-label']);
+
+    expect(xLabel.top, 'x-axis label must sit below the grid').toBeGreaterThanOrEqual(
+      grid.bottom - 1,
+    );
+    expect(yLabel.right, 'y-axis label must sit left of the grid').toBeLessThanOrEqual(
+      grid.left + 1,
+    );
+  });
+});
+
+/* ------------------------------------------------------------------ *
  * Legibility guards that no single principle owns
  * ------------------------------------------------------------------ */
 

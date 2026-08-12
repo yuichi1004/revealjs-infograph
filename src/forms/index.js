@@ -18,6 +18,7 @@ import compare from './compare.js';
 import venn from './venn.js';
 import pyramid from './pyramid.js';
 import cycle from './cycle.js';
+import quadrant from './quadrant.js';
 
 /**
  * @typedef {object} FormContext
@@ -32,7 +33,7 @@ import cycle from './cycle.js';
 
 /** @type {Map<string, Form>} */
 const registry = new Map(
-  Object.entries({ stat, waffle, bar, flow, compare, venn, pyramid, cycle }),
+  Object.entries({ stat, waffle, bar, flow, compare, venn, pyramid, cycle, quadrant }),
 );
 
 /**
