@@ -752,6 +752,49 @@
   gap: 0.7em;
 }
 
+/*
+ * A headed axis adds one `max-content` track for its labels, so the header
+ * sizes to its own text and the four cells keep sharing one column and one row
+ * size. The two modifiers are independent: an author can head one axis, both,
+ * or neither, and the form emits the corner spacer only when both are present
+ * (see src/forms/quadrant.js) so row-major auto-placement stays correct in
+ * every combination.
+ */
+.ig-quadrant-grid-col-headed {
+  grid-template-rows: max-content 1fr 1fr;
+}
+
+.ig-quadrant-grid-row-headed {
+  grid-template-columns: max-content 1fr 1fr;
+}
+
+/*
+ * The end labels. These are the thing that says *which way* each axis runs —
+ * an axis name on its own only says what is measured — so they are real text at
+ * full reading contrast, not chrome. Sized down and cased normally so they
+ * still read as scaffolding around the cells rather than competing with the
+ * cell titles.
+ */
+.ig-quadrant-col-header,
+.ig-quadrant-row-header {
+  margin: 0;
+  font-size: var(--ig-note-size);
+  font-weight: 600;
+  color: var(--ig-text-2);
+}
+
+.ig-quadrant-col-header {
+  text-align: center;
+  align-self: end;
+}
+
+.ig-quadrant-row-header {
+  text-align: right;
+  align-self: center;
+  max-width: 7em;
+  line-height: 1.25;
+}
+
 .ig-quadrant-x-label,
 .ig-quadrant-y-label {
   margin: 0;
@@ -857,6 +900,8 @@
 .ig-enter .ig-pyramid-band,
 .ig-enter .ig-pyramid-label,
 .ig-enter .ig-cycle-label,
+.ig-enter .ig-quadrant-col-header,
+.ig-enter .ig-quadrant-row-header,
 .ig-enter .ig-quadrant-cell {
   animation: ig-rise var(--ig-enter-duration) ease-out backwards;
   animation-delay: calc(var(--ig-enter-delay) + var(--ig-i) * var(--ig-enter-stagger));
