@@ -103,6 +103,17 @@ export const CASES = [
   },
 
   {
+    id: 'flow-icons',
+    title: 'flow — with icons',
+    html: `<div data-infograph="flow">
+             <div data-step="Problem" data-icon="alert">Fragmented teams</div>
+             <div data-step="Intervention" data-icon="gear">Culture integration</div>
+             <div data-step="Result" data-icon="check">66% shorter lead time</div>
+           </div>`,
+    note: 'An icon names a step, it never measures it — every icon here is the same size.',
+  },
+
+  {
     id: 'compare',
     title: 'compare',
     html: `<div data-infograph="compare" data-label="Average lead time">
@@ -151,6 +162,19 @@ export const CASES = [
   },
 
   {
+    id: 'pyramid-icons',
+    title: 'pyramid — with icons',
+    html: `<div data-infograph="pyramid"><ul>
+             <li data-icon="star">Self-actualization</li>
+             <li data-icon="person">Esteem</li>
+             <li data-icon="heart">Love and belonging</li>
+             <li data-icon="flag">Safety needs</li>
+             <li data-icon="drop">Physiological needs</li>
+           </ul></div>`,
+    note: 'One icon per tier, next to its own label, all the same size.',
+  },
+
+  {
     id: 'cycle',
     title: 'cycle — PDCA',
     html: `<div data-infograph="cycle"><ul>
@@ -160,6 +184,18 @@ export const CASES = [
              <li>Act</li>
            </ul></div>`,
     note: 'Connectors are real arcs, not straight chords, and the loop closes back to the first stage.',
+  },
+
+  {
+    id: 'cycle-icons',
+    title: 'cycle — PDCA, with icons',
+    html: `<div data-infograph="cycle"><ul>
+             <li data-icon="clock">Plan</li>
+             <li data-icon="gear">Do</li>
+             <li data-icon="check">Check</li>
+             <li data-icon="flag">Act</li>
+           </ul></div>`,
+    note: 'A stage label with an icon splits into an icon above a text span; the ring geometry grows to clear it.',
   },
 
   {
@@ -174,6 +210,20 @@ export const CASES = [
              <div data-label="Eliminate"><ul><li>Check social media</li></ul></div>
            </div>`,
     note: 'Both ends of each axis are named, so the direction is legible without guessing at it.',
+  },
+
+  {
+    id: 'quadrant-icons',
+    title: 'quadrant — Eisenhower matrix, with icons',
+    html: `<div data-infograph="quadrant"
+                data-x-label="Urgency" data-columns="Urgent, Not urgent"
+                data-y-label="Importance" data-rows="Important, Not important">
+             <div data-label="Do First" data-icon="alert"><ul><li>Fix production bug</li><li>Client deadline today</li></ul></div>
+             <div data-label="Schedule" data-icon="clock"><ul><li>Plan Q3 roadmap</li></ul></div>
+             <div data-label="Delegate" data-icon="flag"><ul><li>Answer routine emails</li></ul></div>
+             <div data-label="Eliminate" data-icon="target"><ul><li>Check social media</li></ul></div>
+           </div>`,
+    note: 'A cell title gains a head row (icon + title) only when it has an icon.',
   },
 ];
 

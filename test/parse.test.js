@@ -79,6 +79,10 @@ describe('parseItemList', () => {
     expect(parseItemList('')).toEqual([]);
     expect(parseItemList(undefined)).toEqual([]);
   });
+
+  it('has no icon — the shorthand has no attribute space for a fourth fact', () => {
+    expect(parseItemList('A, B').every((item) => item.icon === null)).toBe(true);
+  });
 });
 
 describe('readItems', () => {
@@ -98,6 +102,35 @@ describe('readItems', () => {
   it('uses a child element text as its note', () => {
     const node = host('<div data-step="課題">分断されたチーム</div>');
     expect(readItems(node, 'step')[0]).toMatchObject({ label: '課題', note: '分断されたチーム' });
+  });
+
+  it('is null for a child with no icon', () => {
+    const node = host('<div data-item="A"></div>');
+    expect(readItems(node, 'item')[0].icon).toBeNull();
+  });
+
+  it('resolves data-icon on a child into a node', () => {
+    const node = host('<div data-item="A" data-icon="check"></div>');
+    const icon = readItems(node, 'item')[0].icon;
+    expect(icon).not.toBeNull();
+    expect(icon.classList.contains('ig-icon')).toBe(true);
+  });
+
+  it('excludes an inline icon subtree from the derived note', () => {
+    const node = host(
+      '<div data-step="課題"><svg data-icon viewBox="0 0 24 24"><circle r="10"/></svg>分断されたチーム</div>',
+    );
+    expect(readItems(node, 'step')[0]).toMatchObject({ label: '課題', note: '分断されたチーム' });
+  });
+
+  it('leaves the authored inline <svg> in place — the icon is a clone', () => {
+    const node = host(
+      '<div data-item="A"><svg data-icon viewBox="0 0 24 24"><circle r="10"/></svg></div>',
+    );
+    const source = node.querySelector('svg');
+    const [item] = readItems(node, 'item');
+    expect(node.contains(source)).toBe(true);
+    expect(item.icon.contains(source)).toBe(false);
   });
 
   it('ignores children that are not marked with the form key', () => {
@@ -121,6 +154,16 @@ describe('readItems', () => {
       const [item] = readItems(node, 'item');
       expect(item).toMatchObject({ label: 'Remote', emphasis: true });
       expect(item.number).toMatchObject({ value: 34, valid: true });
+    });
+
+    it('honours data-icon on the <li> itself, in every branch of the label logic', () => {
+      const node = host(`<ul>
+        <li data-value="34" data-icon="check">Remote</li>
+        <li data-icon="flag">Office: 52</li>
+        <li data-icon="clock">No number here</li>
+      </ul>`);
+      const items = readItems(node, 'item');
+      expect(items.every((item) => item.icon?.classList.contains('ig-icon'))).toBe(true);
     });
 
     it('splits "label: value" only when the remainder is really a number', () => {

@@ -16,9 +16,13 @@ const SAMPLES = {
   stat: '<div data-infograph="stat" data-value="43.8%" data-label="回答者が同意" data-note="n=1,204"></div>',
   waffle: '<div data-infograph="waffle" data-value="43.8%" data-label="同意した回答者"></div>',
   bar: '<div data-infograph="bar" data-label="働き方" data-items="在宅: 34, 出社: 52"></div>',
+  // flow, pyramid, cycle and quadrant carry a data-icon on every element —
+  // icons are covered here too, on every element (not just some), so the
+  // "give every one an icon, or none" advisory (src/icon.js) never fires on a
+  // figure meant to model correct usage.
   flow: `<div data-infograph="flow">
-           <div data-step="課題">分断されたチーム</div>
-           <div data-step="結果">+43.8%</div>
+           <div data-step="課題" data-icon="alert">分断されたチーム</div>
+           <div data-step="結果" data-icon="check">+43.8%</div>
          </div>`,
   compare: `<div data-infograph="compare" data-label="平均リードタイム">
               <div data-item="導入前" data-value="18日"></div>
@@ -26,23 +30,23 @@ const SAMPLES = {
             </div>`,
   venn: '<div data-infograph="venn" data-a="内製開発" data-b="グローバル化" data-ab="文化統合"></div>',
   pyramid: `<div data-infograph="pyramid"><ul>
-              <li>Self-actualization</li>
-              <li>Esteem</li>
-              <li>Physiological needs</li>
+              <li data-icon="star">Self-actualization</li>
+              <li data-icon="person">Esteem</li>
+              <li data-icon="heart">Physiological needs</li>
             </ul></div>`,
   cycle: `<div data-infograph="cycle"><ul>
-            <li>Plan</li>
-            <li>Do</li>
-            <li>Check</li>
-            <li>Act</li>
+            <li data-icon="clock">Plan</li>
+            <li data-icon="gear">Do</li>
+            <li data-icon="check">Check</li>
+            <li data-icon="flag">Act</li>
           </ul></div>`,
   quadrant: `<div data-infograph="quadrant"
                data-x-label="Urgency" data-columns="Urgent, Not urgent"
                data-y-label="Importance" data-rows="Important, Not important">
-               <div data-label="Do First"><ul><li>Fix production bug</li></ul></div>
-               <div data-label="Schedule"><ul><li>Plan Q3 roadmap</li></ul></div>
-               <div data-label="Delegate"><ul><li>Answer routine emails</li></ul></div>
-               <div data-label="Eliminate"><ul><li>Check social media</li></ul></div>
+               <div data-label="Do First" data-icon="alert"><ul><li>Fix production bug</li></ul></div>
+               <div data-label="Schedule" data-icon="clock"><ul><li>Plan Q3 roadmap</li></ul></div>
+               <div data-label="Delegate" data-icon="flag"><ul><li>Answer routine emails</li></ul></div>
+               <div data-label="Eliminate" data-icon="target"><ul><li>Check social media</li></ul></div>
              </div>`,
 };
 
