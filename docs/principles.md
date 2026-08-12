@@ -118,6 +118,50 @@ so the reader never has to learn "this new colour means important."
 `text-shadow`, or a blurred/offset `box-shadow`. `inset 0 0 0 1px` (the waffle's cell borders) is
 excluded — it's a hairline, not decoration.
 
+## 5b. A sign is repeated, never enlarged
+
+`waffle` and `bar` can draw their marks as silhouettes (`data-ig-symbol="person"`). That sounds
+like it contradicts principle 5, and the rule that keeps it from doing so is Otto Neurath's
+original ISOTYPE constraint:
+
+> A sign is repeated, never enlarged.
+
+Scaling one big symbol to encode a quantity replaces counting with an area judgement — fourth or
+fifth in Cleveland & McGill's ranking, and the single most common way a pictorial chart misleads.
+Repeating identical symbols leaves the reading task exactly as it was: counting for waffle, length
+for bar. So a pictogram here is _the mark itself_, not an ornament laid on top of one, which is the
+distinction principle 5 actually draws.
+
+On the cost: Haroz, Kosara & Franconeri, "ISOTYPE Visualization: Working Memory, Performance, and
+Engagement with Pictographs" (CHI 2015), found repeated pictographs did not hurt reading accuracy,
+and did help recall and engagement.
+
+| Implementation                                                                               | Where                                                         |
+| -------------------------------------------------------------------------------------------- | ------------------------------------------------------------- |
+| Silhouettes are a mask over the mark's own background — same element, same colour logic      | `styles/infograph.css`, `.ig-waffle-symbol` / `.ig-bar-glyph` |
+| Only ever one fixed-size glyph; there is deliberately no API for a proportionally-filled one | `src/design/symbols.js`                                       |
+| Every built-in is drawn on a **square** viewBox, so waffle cells stay square and countable   | `VIEWBOX` in `src/design/symbols.js`                          |
+| A bar states what one symbol is worth, and derives a round unit if the author does not       | `unitFor()` / `niceUnit()` in `src/forms/bar.js`              |
+| A fraction is a **clipped** whole symbol, never a shrunken one                               | `.ig-bar-glyph-partial`                                       |
+| Advises past ~30 symbols on the longest bar, where counting stops working                    | `MAX_SLOTS` in `src/forms/bar.js`                             |
+
+**Visual verification**: the pictogram waffle is still 100 cells, still square within 0.6px, still
+ten distinct columns and ten distinct rows, still 44 filled contiguously — the identical assertions
+the block waffle faces, unrelaxed. The pictogram bar is in the _same_ principle-1 loop as the plain
+bars, so it has to pass "every bar starts at the same x" and "bar lengths are proportional to their
+values" on the same terms. On top of that: glyph count equals value ÷ unit, every value-carrying
+glyph is the same size, and the partial is a full-size glyph inside a narrow clipper.
+
+The decoration probe (`decorationIn` in `test/visual/probes.js`) treats `mask-image` as decoration
+**except** on the two mark classes, and asserts it appears nowhere else — so the exemption cannot
+quietly spread to a container or a label.
+
+> A defect this caught: the glyph inside a partial clipper is not a flex item, so it stayed
+> `display: inline`, ignored its width and rendered at zero. The clipper's own width was still
+> correct, so the bar's length stayed exactly proportional and every existing assertion passed —
+> the fractional symbol was simply an empty gap. Only an assertion that measured the glyph itself
+> could see it.
+
 ## 6. Progressive disclosure — let the pace match the audience
 
 The same content, revealed in stages, reliably measures better than all at once.

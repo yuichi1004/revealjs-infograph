@@ -21,14 +21,15 @@ enforced and where.
 
 ## Gallery
 
-| Form                                                                                              |                                                                                                          |     |
-| ------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------- | --- |
-| [`stat`](#stat--a-single-headline-number)<br>a single headline number                             | ![stat example](test/visual/__screenshots__/screenshots.spec.js/stat.png)                                |
-| [`waffle`](#waffle--a-share-of-the-whole)<br>a share of the whole, countable instead of estimated | ![waffle example](test/visual/__screenshots__/screenshots.spec.js/waffle.png)                            |
-| [`bar`](#bar--comparing-quantities)<br>comparing quantities, with at most one emphasis            | ![bar example with one bar emphasised](test/visual/__screenshots__/screenshots.spec.js/bar-emphasis.png) |
-| [`flow`](#flow--stages-in-order)<br>ordered stages with explicit connectors                       | ![flow example](test/visual/__screenshots__/screenshots.spec.js/flow.png)                                |
-| [`compare`](#compare--two-points-in-time)<br>two points in time, with the delta computed for you  | ![compare example](test/visual/__screenshots__/screenshots.spec.js/compare.png)                          |
-| [`venn`](#venn--when-the-overlap-is-the-point)<br>when the overlap between two sets is the point  | ![venn example](test/visual/__screenshots__/screenshots.spec.js/venn-default.png)                        |
+| Form                                                                                              |                                                                                                            |     |
+| ------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------- | --- |
+| [`stat`](#stat--a-single-headline-number)<br>a single headline number                             | ![stat example](test/visual/__screenshots__/screenshots.spec.js/stat.png)                                  |
+| [`waffle`](#waffle--a-share-of-the-whole)<br>a share of the whole, countable instead of estimated | ![waffle example](test/visual/__screenshots__/screenshots.spec.js/waffle.png)                              |
+| [`bar`](#bar--comparing-quantities)<br>comparing quantities, with at most one emphasis            | ![bar example with one bar emphasised](test/visual/__screenshots__/screenshots.spec.js/bar-emphasis.png)   |
+| [`flow`](#flow--stages-in-order)<br>ordered stages with explicit connectors                       | ![flow example](test/visual/__screenshots__/screenshots.spec.js/flow.png)                                  |
+| [`compare`](#compare--two-points-in-time)<br>two points in time, with the delta computed for you  | ![compare example](test/visual/__screenshots__/screenshots.spec.js/compare.png)                            |
+| [`venn`](#venn--when-the-overlap-is-the-point)<br>when the overlap between two sets is the point  | ![venn example](test/visual/__screenshots__/screenshots.spec.js/venn-default.png)                          |
+| [pictogram marks](#pictogram-marks)<br>`waffle` and `bar` drawn as repeated silhouettes           | ![waffle drawn with person silhouettes](test/visual/__screenshots__/screenshots.spec.js/waffle-symbol.png) |
 
 These images are the exact artifacts `npm run test:visual:docker` generates and verifies inside a
 pinned Docker container (see [CONTRIBUTING.md](CONTRIBUTING.md#visual-testing)) — not a
@@ -264,6 +265,65 @@ communicate better than one over-complicated one.
 | ------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------- |
 | ![venn overlap 0.05](test/visual/__screenshots__/screenshots.spec.js/venn-narrow.png) | ![venn overlap 0.35](test/visual/__screenshots__/screenshots.spec.js/venn-default.png) | ![venn overlap 0.55](test/visual/__screenshots__/screenshots.spec.js/venn-wide.png) |
 
+### Pictogram marks
+
+`waffle` and `bar` can draw their marks as silhouettes instead of blocks. Add `data-ig-symbol`:
+
+![waffle drawn with person silhouettes](test/visual/__screenshots__/screenshots.spec.js/waffle-symbol.png)
+
+```html
+<div
+  data-infograph="waffle"
+  data-value="43.8%"
+  data-label="Respondents who agreed"
+  data-ig-symbol="person"
+></div>
+```
+
+Nothing about the encoding changes — still a hundred cells, still one per unit, still counted in
+rows. The silhouette only changes what shape each cell is painted in.
+
+For `bar`, say what one symbol is worth with `data-ig-symbol-unit`:
+
+![bar drawn with person silhouettes, one symbol per ten](test/visual/__screenshots__/screenshots.spec.js/bar-symbol.png)
+
+```html
+<div
+  data-infograph="bar"
+  data-label="Where people work each week"
+  data-ig-symbol="person"
+  data-ig-symbol-unit="10"
+  data-items="Remote: 34, Office: 52, Hybrid: 71"
+></div>
+```
+
+The count is then the value: 34 is three symbols and a bit, and the "bit" is a **clipped** symbol
+rather than a smaller one. Leave `data-ig-symbol-unit` out and a round number is chosen for you and
+printed under the chart — a chart of symbols with no stated unit cannot be read at all.
+
+| Attribute             | Meaning                                                                   |
+| --------------------- | ------------------------------------------------------------------------- |
+| `data-ig-symbol`      | One of `square` `circle` `person` `building` `tree` `drop` `heart` `star` |
+| `data-ig-symbol-path` | Your own outline instead — any SVG path drawn on a 24×24 grid             |
+| `data-ig-symbol-unit` | `bar` only. What one symbol represents. Derived and stated if omitted     |
+
+Both `symbol` and `symbolPath` also work deck-wide (`infograph: { symbol: 'person' }`), and
+`data-ig-symbol="square"` opts one figure back out.
+
+**Why there is no "fill one big silhouette to 43%" option.** Repeating a symbol keeps the reading
+task as counting; scaling one symbol turns it into judging an area, which is both far less accurate
+and the classic way a pictorial chart misleads. That is Otto Neurath's original ISOTYPE rule — _a
+sign is repeated, never enlarged_ — and it is why this feature is a mark, not a decoration. Repeated
+pictographs have been measured as costing no reading accuracy while helping recall (Haroz, Kosara &
+Franconeri, CHI 2015). See [docs/principles.md](docs/principles.md#5b-a-sign-is-repeated-never-enlarged).
+
+For a custom shape, draw it on a 24×24 square and keep it a solid silhouette — it is painted as a
+mask, so only the shape matters, never its colours:
+
+```html
+<div data-infograph="waffle" data-value="62%" data-ig-symbol-path="M12 2 2 22h20z"></div>
+```
+
 ### `auto` — let intent choose the form
 
 ```html
@@ -298,16 +358,18 @@ initReveal({
 
 Override one figure at a time with `data-ig-*`.
 
-| Key         | `data-ig-*`          | Default       | Meaning                               |
-| ----------- | -------------------- | ------------- | ------------------------------------- |
-| `palette`   | `data-ig-palette`    | `default`     | Palette name                          |
-| `density`   | `data-ig-density`    | `comfortable` | `compact` tightens spacing            |
-| `legend`    | `data-ig-legend`     | `false`       | Use a legend instead of direct labels |
-| `animate`   | `data-ig-animate`    | `true`        | Entrance animation                    |
-| `duration`  | `data-ig-duration`   | `600`         | Animation duration (ms)               |
-| `delay`     | `data-ig-delay`      | `100`         | Delay after the slide appears (ms)    |
-| `maxSeries` | `data-ig-max-series` | `4`           | Advises past this many series         |
-| `quiet`     | —                    | `false`       | Silences advisory messages            |
+| Key          | `data-ig-*`           | Default       | Meaning                               |
+| ------------ | --------------------- | ------------- | ------------------------------------- |
+| `palette`    | `data-ig-palette`     | `default`     | Palette name                          |
+| `density`    | `data-ig-density`     | `comfortable` | `compact` tightens spacing            |
+| `legend`     | `data-ig-legend`      | `false`       | Use a legend instead of direct labels |
+| `animate`    | `data-ig-animate`     | `true`        | Entrance animation                    |
+| `duration`   | `data-ig-duration`    | `600`         | Animation duration (ms)               |
+| `delay`      | `data-ig-delay`       | `100`         | Delay after the slide appears (ms)    |
+| `maxSeries`  | `data-ig-max-series`  | `4`           | Advises past this many series         |
+| `symbol`     | `data-ig-symbol`      | —             | Silhouette for `waffle` / `bar` marks |
+| `symbolPath` | `data-ig-symbol-path` | —             | A custom 24×24 outline instead        |
+| `quiet`      | —                     | `false`       | Silences advisory messages            |
 
 Writing `data-ig-legend` with no value means `true` (same convention as reveal's own
 `data-auto-animate`).
