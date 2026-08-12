@@ -149,6 +149,18 @@ export const CASES = [
            </ul></div>`,
     note: 'Width states rank, not magnitude: tiers must narrow monotonically toward the apex.',
   },
+
+  {
+    id: 'cycle',
+    title: 'cycle — PDCA',
+    html: `<div data-infograph="cycle"><ul>
+             <li>Plan</li>
+             <li>Do</li>
+             <li>Check</li>
+             <li>Act</li>
+           </ul></div>`,
+    note: 'Connectors are real arcs, not straight chords, and the loop closes back to the first stage.',
+  },
 ];
 
 /** @param {string} id */
