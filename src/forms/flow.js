@@ -2,9 +2,9 @@
  * flow — ordered stages, with the ordering made explicit.
  *
  *   <div data-infograph="flow" data-ig-fragment="steps">
- *     <div data-step="課題">分断されたチーム</div>
- *     <div data-step="介入">文化統合</div>
- *     <div data-step="結果">+43.8%</div>
+ *     <div data-step="Problem">Fragmented teams</div>
+ *     <div data-step="Intervention">Culture integration</div>
+ *     <div data-step="Result">+43.8%</div>
  *   </div>
  *
  * Three things this form is doing, none of them decorative:

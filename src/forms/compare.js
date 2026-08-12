@@ -1,9 +1,9 @@
 /**
  * compare — two values, and the size of the gap between them.
  *
- *   <div data-infograph="compare" data-label="平均リードタイム">
- *     <div data-item="導入前" data-value="18日"></div>
- *     <div data-item="導入後" data-value="6日" data-emphasis></div>
+ *   <div data-infograph="compare" data-label="Average lead time">
+ *     <div data-item="Before" data-value="18 days"></div>
+ *     <div data-item="After" data-value="6 days" data-emphasis></div>
  *   </div>
  *
  * A two-bar chart spends an axis, a baseline and a scale on a comparison the
@@ -70,8 +70,8 @@ export default function compare({ host }) {
     label: data.label ?? items.map((i) => `${i.label} ${i.number.text}`).join(' → '),
     visual,
     table: dataTable({
-      caption: data.label ?? '比較',
-      columns: ['時点', '値'],
+      caption: data.label ?? 'Comparison',
+      columns: ['Point in time', 'Value'],
       rows: items.map((item) => [item.label, item.number.valid ? item.number.text : '—']),
     }),
     caption: data.caption,

@@ -1,8 +1,8 @@
 /**
  * stat — one number, said once.
  *
- *   <div data-infograph="stat" data-value="43.8%" data-label="回答者が同意"
- *        data-note="n=1,204 / 2026年調査"></div>
+ *   <div data-infograph="stat" data-value="43.8%" data-label="Respondents who agreed"
+ *        data-note="n=1,204 · 2026 internal survey"></div>
  *
  * The least chart-like form here, and often the right one. A single quantity
  * has no comparison to support, so a chart adds an axis, a scale and a mark
@@ -30,7 +30,7 @@ export default function stat({ host }) {
   if (!number.text) {
     advise('stat has no data-value', {
       element: host,
-      hint: 'A stat is a number and its meaning: data-value="43.8%" data-label="回答者が同意".',
+      hint: 'A stat is a number and its meaning: data-value="43.8%" data-label="Respondents who agreed".',
     });
   }
 
@@ -60,8 +60,8 @@ export default function stat({ host }) {
   );
 
   // No hidden table: the visible text already reads in a sensible order
-  // ("43.8%, 回答者が同意"), and duplicating it would make a screen reader say
-  // the number twice.
+  // ("43.8%, Respondents who agreed"), and duplicating it would make a screen
+  // reader say the number twice.
   return figure({
     form: 'stat',
     label: [number.text, label].filter(Boolean).join(' — '),

@@ -18,7 +18,7 @@ import { advise } from './warn.js';
  * @property {number} value      The numeric value.
  * @property {string} text       Exactly what the author wrote.
  * @property {string} prefix     Anything before the digits (currency, etc).
- * @property {string} suffix     Anything after (%, 人, ×…).
+ * @property {string} suffix     Anything after (%, days, ×…).
  * @property {number} decimals   Fractional digits the author used.
  * @property {boolean} grouped   Author used thousands separators.
  * @property {boolean} plus      Author wrote an explicit leading `+`.
@@ -100,14 +100,14 @@ export function formatNumber(value, spec) {
  * Read a form's items from child elements, e.g.
  *
  *   <div data-infograph="bar">
- *     <div data-item="在宅" data-value="34"></div>
- *     <div data-item="出社" data-value="52" data-emphasis></div>
+ *     <div data-item="Remote" data-value="34"></div>
+ *     <div data-item="Office" data-value="52" data-emphasis></div>
  *   </div>
  *
  * The child's own text content is used as the note when present, so a step in a
  * flow can carry a sentence without another attribute:
  *
- *   <div data-step="課題">分断されたチーム</div>
+ *   <div data-step="Problem">Fragmented teams</div>
  *
  * @param {Element} host
  * @param {string} key  The `data-*` name that marks a child: 'item', 'step', …
@@ -140,10 +140,12 @@ export function readChildItems(host, key) {
  * Shorthand for the common two-or-three item case, so a comparison does not
  * need child elements at all:
  *
- *   data-items="在宅: 34, 出社: 52"
+ *   data-items="Remote: 34, Office: 52"
  *
- * Both ASCII and full-width colons separate label from value, because the decks
- * this was built for are written in Japanese and `：` is what an IME produces.
+ * Both ASCII and full-width punctuation separate the parts (`:` and `：`, `,`
+ * and `、`), because the decks this was built for are written in Japanese and
+ * full-width is simply what a Japanese IME produces — an author should not have
+ * to switch input modes halfway through an attribute.
  *
  * @param {string|null|undefined} raw
  * @returns {Item[]}

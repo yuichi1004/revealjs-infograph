@@ -2,7 +2,8 @@
  * venn — two ideas and the thing that exists only where they meet.
  *
  *   <div data-infograph="venn" data-overlap="0.35"
- *        data-a="内製開発" data-b="グローバル化" data-ab="文化統合"></div>
+ *        data-a="In-house development" data-b="Globalization"
+ *        data-ab="Culture integration"></div>
  *
  * This is the one form where area is the right encoding, because area *is* the
  * message: the claim "these two overlap" is topological, not quantitative. Set
@@ -112,7 +113,9 @@ export default function venn({ host }) {
     form: 'venn',
     label:
       data.label ??
-      (labelAB ? `${labelA} と ${labelB} の重なり: ${labelAB}` : `${labelA} と ${labelB} の重なり`),
+      (labelAB
+        ? `Overlap between ${labelA} and ${labelB}: ${labelAB}`
+        : `Overlap between ${labelA} and ${labelB}`),
     visual,
     caption: data.caption,
   });

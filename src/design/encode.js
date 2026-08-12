@@ -90,7 +90,7 @@ export function checkEncoding({ form, items, config, host }) {
       `${form} has ${items.length} items; more than ${config.maxSeries} is hard to hold in mind`,
       {
         element: host,
-        hint: 'Show the top few and roll the rest into "その他", or split across slides. An audience reads a slide once, at your pace, not theirs.',
+        hint: 'Show the top few and roll the rest into "Other", or split across slides. An audience reads a slide once, at your pace, not theirs.',
       },
     );
   }
