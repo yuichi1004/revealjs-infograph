@@ -260,6 +260,133 @@ describe('venn', () => {
   });
 });
 
+describe('pyramid', () => {
+  const maslow = `<div data-infograph="pyramid"><ul>
+    <li>Self-actualization</li>
+    <li>Esteem</li>
+    <li>Love and belonging</li>
+    <li>Safety needs</li>
+    <li>Physiological needs</li>
+  </ul></div>`;
+
+  it('reads levels apex-first, in document order', () => {
+    const figure = render(maslow);
+    expect(all(figure, '.ig-pyramid-label-text').map((el) => el.textContent)).toEqual([
+      'Self-actualization',
+      'Esteem',
+      'Love and belonging',
+      'Safety needs',
+      'Physiological needs',
+    ]);
+  });
+
+  it('clips the apex to a point and the base to the full width', () => {
+    const figure = render(maslow);
+    const clip = (i) =>
+      /** @type {HTMLElement} */ (all(figure, '.ig-pyramid-band')[i]).style.getPropertyValue(
+        '--ig-pyramid-clip',
+      );
+
+    // The apex (tier 0) closes to a point: its top-left and top-right corners
+    // are the same x. The base (last tier) spans the full 0%–100% at the
+    // bottom edge.
+    expect(clip(0)).toMatch(/polygon\(50% 0%, 50% 0%,/);
+    expect(clip(4)).toMatch(/, 100% 100%, 0% 100%\)$/);
+  });
+
+  it('narrows monotonically toward the apex', () => {
+    // Read the top-left x out of each polygon() and confirm it only grows as
+    // tiers go from apex to base — the geometric claim the whole form rests on.
+    const figure = render(maslow);
+    const topLeftXs = all(figure, '.ig-pyramid-band').map((el) => {
+      const clip = /** @type {HTMLElement} */ (el).style.getPropertyValue('--ig-pyramid-clip');
+      return Number(/polygon\(([\d.]+)%/.exec(clip)?.[1]);
+    });
+    for (let i = 1; i < topLeftXs.length; i++) {
+      expect(topLeftXs[i], `tier ${i} vs tier ${i - 1}`).toBeLessThanOrEqual(topLeftXs[i - 1]);
+    }
+  });
+
+  it('gives every tier the same fill when nothing is emphasised', () => {
+    const figure = render(maslow);
+    const fills = all(figure, '.ig-pyramid-band').map((el) =>
+      /** @type {HTMLElement} */ (el).style.getPropertyValue('--ig-pyramid-fill'),
+    );
+    expect(new Set(fills).size).toBe(1);
+  });
+
+  it('grays every tier but the emphasised one', () => {
+    const figure = render(
+      maslow.replace('data-infograph="pyramid"', 'data-infograph="pyramid" data-emphasis="2"'),
+    );
+    const fills = all(figure, '.ig-pyramid-band').map((el) =>
+      /** @type {HTMLElement} */ (el).style.getPropertyValue('--ig-pyramid-fill'),
+    );
+    expect(fills[1]).toBe('var(--ig-mark-1)');
+    expect(fills.filter((f, i) => i !== 1).every((f) => f === 'var(--ig-muted)')).toBe(true);
+  });
+
+  it('reads data-level children the same way <li> works', () => {
+    const figure = render(`<div data-infograph="pyramid">
+      <div data-level="Top"></div>
+      <div data-level="Bottom"></div>
+    </div>`);
+    expect(all(figure, '.ig-pyramid-label-text').map((el) => el.textContent)).toEqual([
+      'Top',
+      'Bottom',
+    ]);
+  });
+
+  it('reads the data-items shorthand too', () => {
+    const figure = render('<div data-infograph="pyramid" data-items="Top, Bottom"></div>');
+    expect(all(figure, '.ig-pyramid-band')).toHaveLength(2);
+  });
+
+  it('prints a value when one is given, but not in the fill', () => {
+    const figure = render(`<div data-infograph="pyramid"><ul>
+      <li>Enterprise: 400</li><li>Mid-market: 1200</li>
+    </ul></div>`);
+    expect(text(figure, '.ig-pyramid-label-value')).toBe('400');
+  });
+
+  it('advises that width is not encoding the value it prints', () => {
+    render(`<div data-infograph="pyramid"><ul>
+      <li>Enterprise: 400</li><li>Mid-market: 1200</li>
+    </ul></div>`);
+    expect(warnings().join()).toMatch(/not magnitude/);
+  });
+
+  it('advises below two levels', () => {
+    render('<div data-infograph="pyramid"><ul><li>Only one</li></ul></div>');
+    expect(warnings().join()).toMatch(/at least two levels/);
+  });
+
+  it('advises past seven levels', () => {
+    const items = Array.from({ length: 8 }, (_, i) => `<li>Level ${i}</li>`).join('');
+    render(`<div data-infograph="pyramid"><ul>${items}</ul></div>`);
+    expect(warnings().join()).toMatch(/more than 7/);
+  });
+
+  it('hides the shape from assistive tech and keeps the labels', () => {
+    const figure = render(maslow);
+    expect(
+      figure.querySelector('.ig-pyramid-band')?.closest('[aria-hidden="true"]'),
+    ).not.toBeNull();
+    expect(figure.querySelector('.ig-pyramid-label')?.closest('[aria-hidden="true"]')).toBeNull();
+  });
+
+  it('carries no hidden table — the tiers are already text, in rank order', () => {
+    expect(render(maslow).querySelector('table')).toBeNull();
+  });
+
+  it('names the figure top-down', () => {
+    const figure = render(maslow);
+    expect(figure.getAttribute('aria-label')).toBe(
+      'Self-actualization → Esteem → Love and belonging → Safety needs → Physiological needs',
+    );
+  });
+});
+
 /*
  * Pictogram marks.
  *
@@ -442,7 +569,15 @@ describe('bar with symbols', () => {
 
 describe('registry', () => {
   it('ships the documented forms', () => {
-    expect(formNames().sort()).toEqual(['bar', 'compare', 'flow', 'stat', 'venn', 'waffle']);
+    expect(formNames().sort()).toEqual([
+      'bar',
+      'compare',
+      'flow',
+      'pyramid',
+      'stat',
+      'venn',
+      'waffle',
+    ]);
   });
 
   it('accepts a form of your own and gives it the same pipeline', () => {

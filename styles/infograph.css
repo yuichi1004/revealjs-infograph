@@ -604,6 +604,56 @@
   transform: translateX(-50%);
 }
 
+/* ---------- pyramid ---------- */
+
+/*
+ * One grid for the whole figure, same reasoning as bar's: a shared shape column
+ * width, not one sized per row, is what keeps every tier's box identical so the
+ * narrowing comes only from the clip. Rows are `display: contents` for the same
+ * reason bar's are — see the long comment on `.ig-bar` above.
+ */
+.ig-pyramid {
+  display: grid;
+  grid-template-columns: 10rem max-content;
+  align-items: center;
+  gap: 3px 0.9em;
+  width: 100%;
+}
+
+.ig-pyramid-row {
+  display: contents;
+}
+
+.ig-pyramid-band {
+  display: block;
+  height: 2.1em;
+  width: 100%;
+  background: var(--ig-pyramid-fill, var(--ig-mark-1));
+  /* The trapezoid itself: a per-tier polygon set inline by the form, cutting
+     every band — which is otherwise a plain full-width rectangle — down to its
+     place in the pyramid. See src/forms/pyramid.js. */
+  clip-path: var(--ig-pyramid-clip);
+}
+
+.ig-pyramid-label {
+  display: flex;
+  align-items: baseline;
+  gap: 0.5em;
+  font-size: var(--ig-label-size);
+  color: var(--ig-text);
+}
+
+.ig-pyramid-label-value {
+  font-size: var(--ig-note-size);
+  color: var(--ig-text-2);
+  font-variant-numeric: tabular-nums;
+}
+
+.ig-pyramid-row-on .ig-pyramid-label-text {
+  color: var(--ig-ink-1);
+  font-weight: 700;
+}
+
 /* ---------- Entrance animation ---------- */
 
 /*
@@ -639,7 +689,9 @@
 .ig-enter .ig-flow-arrow,
 .ig-enter .ig-compare-side,
 .ig-enter .ig-compare-delta,
-.ig-enter .ig-waffle-legend {
+.ig-enter .ig-waffle-legend,
+.ig-enter .ig-pyramid-band,
+.ig-enter .ig-pyramid-label {
   animation: ig-rise var(--ig-enter-duration) ease-out backwards;
   animation-delay: calc(var(--ig-enter-delay) + var(--ig-i) * var(--ig-enter-stagger));
 }

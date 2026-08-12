@@ -137,6 +137,61 @@ export function readChildItems(host, key) {
 }
 
 /**
+ * Read a form's items from a plain `<ul>`/`<ol>`, so a figure can be authored
+ * from a reveal.js Markdown list instead of `data-*` children:
+ *
+ *   <div data-infograph="pyramid">
+ *     <ul>
+ *       <li>Self-actualization</li>
+ *       <li>Esteem</li>
+ *     </ul>
+ *   </div>
+ *
+ * Only the first direct `<ul>`/`<ol>` is read, and only its own `<li>`
+ * children — a nested list inside one item's prose is left alone rather than
+ * flattened into extra items.
+ *
+ * `data-value` on the `<li>` itself works exactly as it does on a `data-item`
+ * child. Failing that, `label: value` is split out of the text — but *only*
+ * when the part after the colon actually parses as a number, so a label that
+ * happens to contain a colon ("Safety: the foundation of the rest") is not
+ * misread as data. A colon that does not parse just stays part of the label.
+ *
+ * @param {Element} host
+ * @returns {Item[]}
+ */
+function readListItems(host) {
+  const list = host.querySelector(':scope > ul, :scope > ol');
+  if (!list) return [];
+
+  /** @type {Item[]} */
+  const items = [];
+
+  for (const li of list.children) {
+    if (li.tagName !== 'LI') continue;
+    const data = /** @type {HTMLElement} */ (li).dataset;
+    const text = li.textContent?.trim() ?? '';
+    const emphasis = 'emphasis' in data;
+
+    if (data.value !== undefined) {
+      items.push({ label: text, number: parseNumber(data.value), emphasis, source: li });
+      continue;
+    }
+
+    const split = text.search(/[:：]/);
+    const candidate = split === -1 ? null : parseNumber(text.slice(split + 1).trim());
+
+    if (candidate?.valid) {
+      items.push({ label: text.slice(0, split).trim(), number: candidate, emphasis, source: li });
+    } else {
+      items.push({ label: text, number: parseNumber(undefined), emphasis, source: li });
+    }
+  }
+
+  return items;
+}
+
+/**
  * Shorthand for the common two-or-three item case, so a comparison does not
  * need child elements at all:
  *
@@ -172,9 +227,11 @@ export function parseItemList(raw) {
 /**
  * The items for a form, from whichever notation the author used.
  *
- * Child elements win over the `data-items` shorthand when both are present:
- * the longhand is what you reach for when the shorthand ran out of room, so it
- * is the more deliberate of the two.
+ * In order: `data-*` children, then a plain `<ul>`/`<ol>`, then the
+ * `data-items` shorthand. Each is what you reach for when the previous one
+ * does not fit — `data-*` children are the most deliberate, a Markdown list is
+ * what a slide already looks like, and the shorthand is for when even that is
+ * too much markup for one line.
  *
  * @param {Element} host
  * @param {string} key
@@ -183,6 +240,10 @@ export function parseItemList(raw) {
 export function readItems(host, key) {
   const children = readChildItems(host, key);
   if (children.length) return children;
+
+  const listItems = readListItems(host);
+  if (listItems.length) return listItems;
+
   return parseItemList(/** @type {HTMLElement} */ (host).dataset.items);
 }
 

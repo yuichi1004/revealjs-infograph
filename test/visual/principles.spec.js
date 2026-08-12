@@ -621,6 +621,114 @@ test.describe('pictogram marks', () => {
 });
 
 /* ------------------------------------------------------------------ *
+ * pyramid — width states rank, not magnitude
+ * ------------------------------------------------------------------ */
+
+/**
+ * Where a tier's slanted edge crosses the row's vertical mid-line, as a
+ * fraction (0–1) of the row's own width.
+ *
+ * Mirrors the formula in src/forms/pyramid.js exactly — this is the same
+ * "derive the sample point from the tokens the renderer uses" discipline the
+ * venn tests above follow, so the test targets the same feature of the
+ * drawing even if the tier count or the box size changes.
+ *
+ * @param {number} tier   0-based, 0 = apex.
+ * @param {number} total  Tier count.
+ */
+function pyramidEdgeFraction(tier, total) {
+  const topLeftPct = 50 - (50 * tier) / total;
+  const bottomLeftPct = 50 - (50 * (tier + 1)) / total;
+  return (topLeftPct + bottomLeftPct) / 2 / 100;
+}
+
+test.describe('pyramid: width states rank, not magnitude', () => {
+  const TOTAL = 5; // Maslow's five levels — see test/visual/cases.js.
+
+  test('every tier is really painted at the width the formula predicts', async ({ page }) => {
+    // Hit-testing, not a bounding-box measurement: getBoundingClientRect() is
+    // unaffected by clip-path, so every band reports the same full-width box
+    // regardless of what is actually painted. Only sampling what is *under
+    // the cursor* — the same technique the venn lens tests use — can tell a
+    // real trapezoid from a rectangle that merely claims to be one.
+    for (let tier = 0; tier < TOTAL; tier++) {
+      const selector = `${stage('pyramid')} .ig-pyramid-row:nth-child(${tier + 1}) .ig-pyramid-band`;
+      const edge = pyramidEdgeFraction(tier, TOTAL);
+
+      const inside = await page.evaluate(elementAtFraction, [selector, edge + 0.03, 0.5]);
+      const outside = await page.evaluate(elementAtFraction, [selector, edge - 0.03, 0.5]);
+
+      expect(inside?.classes, `tier ${tier}: just inside the slope must be painted`).toContain(
+        'ig-pyramid-band',
+      );
+      expect(
+        outside?.classes,
+        `tier ${tier}: just outside the slope must not be painted`,
+      ).not.toContain('ig-pyramid-band');
+    }
+  });
+
+  test('tiers narrow monotonically from base to apex', async ({ page }) => {
+    // The predicted edges themselves move outward from apex to base by
+    // construction; what needs checking is that the *painted* pyramid agrees,
+    // tier by tier, all the way down. A CSS regression that reordered rows or
+    // recomputed the polygon backwards would flip this without necessarily
+    // breaking the single-tier check above.
+    for (let tier = 1; tier < TOTAL; tier++) {
+      const wider = `${stage('pyramid')} .ig-pyramid-row:nth-child(${tier + 1}) .ig-pyramid-band`;
+      const narrower = `${stage('pyramid')} .ig-pyramid-row:nth-child(${tier}) .ig-pyramid-band`;
+      const midpoint =
+        (pyramidEdgeFraction(tier - 1, TOTAL) + pyramidEdgeFraction(tier, TOTAL)) / 2;
+
+      // A point between the two tiers' edges: painted on the wider (lower)
+      // tier, not painted on the narrower (upper) one.
+      const onWider = await page.evaluate(elementAtFraction, [wider, midpoint, 0.5]);
+      const onNarrower = await page.evaluate(elementAtFraction, [narrower, midpoint, 0.5]);
+
+      expect(onWider?.classes, `tier ${tier} vs ${tier - 1}`).toContain('ig-pyramid-band');
+      expect(onNarrower?.classes, `tier ${tier - 1} vs ${tier}`).not.toContain('ig-pyramid-band');
+    }
+  });
+
+  test('every tier shares the same box, so only the clip narrows it', async ({ page }) => {
+    // The design's whole simplification: one grid column width for every row,
+    // with the trapezoid coming entirely from the clip. If a tier's box were
+    // sized differently, the shared left edge bar already relies on would be
+    // broken here too.
+    const bands = await page.evaluate(rectsOf, [stage('pyramid'), '.ig-pyramid-band']);
+    expect(bands).toHaveLength(TOTAL);
+
+    const lefts = bands.map((b) => b.left);
+    const widths = bands.map((b) => b.width);
+    expect(Math.max(...lefts) - Math.min(...lefts), 'left edges').toBeLessThan(0.6);
+    expect(Math.max(...widths) - Math.min(...widths), 'widths').toBeLessThan(0.6);
+  });
+
+  test('each label sits at its own tier’s vertical centre', async ({ page }) => {
+    // Same shape of check as bar's "labels sit beside their own bar" —
+    // principle 3, direct labelling, applied to a different geometry.
+    const bands = await page.evaluate(rectsOf, [stage('pyramid'), '.ig-pyramid-band']);
+    const labels = await page.evaluate(rectsOf, [stage('pyramid'), '.ig-pyramid-label']);
+    expect(labels).toHaveLength(bands.length);
+
+    const strays = labels
+      .map((label, i) => ({
+        i,
+        offset: Math.abs((label.top + label.bottom) / 2 - (bands[i].top + bands[i].bottom) / 2),
+      }))
+      .filter((s) => s.offset > 2);
+
+    expect(
+      strays,
+      `labels are not centred on their tier:${listing(
+        strays,
+        (s) => `tier ${s.i}: off by ${s.offset.toFixed(1)}px`,
+      )}`,
+    ).toEqual([]);
+  });
+});
+
+/* ------------------------------------------------------------------ *
  * Legibility guards that no single principle owns
  * ------------------------------------------------------------------ */
 

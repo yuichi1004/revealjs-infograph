@@ -104,6 +104,57 @@ describe('readItems', () => {
     const node = host('<div data-item="A"></div><span>noise</span>');
     expect(readItems(node, 'item')).toHaveLength(1);
   });
+
+  describe('falls back to a plain list', () => {
+    it('reads <li> text as the label, in document order', () => {
+      const node = host('<ul><li>Esteem</li><li>Safety needs</li></ul>');
+      expect(readItems(node, 'item').map((i) => i.label)).toEqual(['Esteem', 'Safety needs']);
+    });
+
+    it('reads an <ol> the same way', () => {
+      const node = host('<ol><li>First</li><li>Second</li></ol>');
+      expect(readItems(node, 'item').map((i) => i.label)).toEqual(['First', 'Second']);
+    });
+
+    it('honours data-value and data-emphasis on the <li> itself', () => {
+      const node = host('<ul><li data-value="34" data-emphasis>Remote</li></ul>');
+      const [item] = readItems(node, 'item');
+      expect(item).toMatchObject({ label: 'Remote', emphasis: true });
+      expect(item.number).toMatchObject({ value: 34, valid: true });
+    });
+
+    it('splits "label: value" only when the remainder is really a number', () => {
+      const node = host('<ul><li>Remote: 34</li></ul>');
+      const [item] = readItems(node, 'item');
+      expect(item.label).toBe('Remote');
+      expect(item.number).toMatchObject({ value: 34, valid: true });
+    });
+
+    it('keeps a colon that is not followed by a number as part of the label', () => {
+      // The whole point of the "does it parse" check: prose must not be
+      // misread as data just because it contains a colon.
+      const node = host('<ul><li>Safety: the foundation of the rest</li></ul>');
+      const [item] = readItems(node, 'item');
+      expect(item.label).toBe('Safety: the foundation of the rest');
+      expect(item.number.valid).toBe(false);
+    });
+
+    it('does not flatten a nested list inside one item', () => {
+      const node = host('<ul><li>Top<ul><li>Nested</li></ul></li><li>Bottom</li></ul>');
+      expect(readItems(node, 'item')).toHaveLength(2);
+    });
+
+    it('yields to data-* children when both are present', () => {
+      const node = host('<div data-item="A"></div><ul><li>B</li></ul>');
+      expect(readItems(node, 'item').map((i) => i.label)).toEqual(['A']);
+    });
+
+    it('yields to the <li> list over the data-items shorthand', () => {
+      const node = host('<ul><li>A</li></ul>');
+      node.dataset.items = 'B: 2';
+      expect(readItems(node, 'item').map((i) => i.label)).toEqual(['A']);
+    });
+  });
 });
 
 describe('applyEmphasis', () => {

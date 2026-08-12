@@ -25,6 +25,11 @@ const SAMPLES = {
               <div data-item="導入後" data-value="6日"></div>
             </div>`,
   venn: '<div data-infograph="venn" data-a="内製開発" data-b="グローバル化" data-ab="文化統合"></div>',
+  pyramid: `<div data-infograph="pyramid"><ul>
+              <li>Self-actualization</li>
+              <li>Esteem</li>
+              <li>Physiological needs</li>
+            </ul></div>`,
 };
 
 it('has a sample for every registered form', () => {
@@ -83,11 +88,14 @@ describe('tabular fallback', () => {
     expect(table?.querySelectorAll('th[scope="row"]').length).toBeGreaterThan(0);
   });
 
-  it.each(['stat', 'flow', 'venn'])('%s needs no table — its text already reads', (form) => {
-    // Duplicating text that is already in the accessible tree makes a screen
-    // reader say everything twice, which is its own accessibility problem.
-    expect(render(SAMPLES[form]).querySelector('table')).toBeNull();
-  });
+  it.each(['stat', 'flow', 'venn', 'pyramid'])(
+    '%s needs no table — its text already reads',
+    (form) => {
+      // Duplicating text that is already in the accessible tree makes a screen
+      // reader say everything twice, which is its own accessibility problem.
+      expect(render(SAMPLES[form]).querySelector('table')).toBeNull();
+    },
+  );
 
   it('hides the table visually without hiding it from assistive tech', () => {
     const wrapper = render(SAMPLES.bar).querySelector('.ig-sr-only');
