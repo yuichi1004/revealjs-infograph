@@ -12,6 +12,7 @@
  */
 
 import { advise } from './warn.js';
+import { iconFor } from './icon.js';
 
 /**
  * @typedef {object} NumberSpec
@@ -93,6 +94,10 @@ export function formatNumber(value, spec) {
  * @property {NumberSpec} number Parsed value (may be invalid for label-only forms).
  * @property {string} [note]     Secondary line.
  * @property {boolean} emphasis  Whether this is the one item to highlight.
+ * @property {Element|null} [icon] This item's `data-icon`/`data-icon-path`/inline
+ *   `<svg data-icon>`, already resolved to a node — see src/icon.js. Always
+ *   `null` for items read from the `data-items="A, B"` shorthand, which has no
+ *   attribute space for a fourth per-item fact.
  * @property {Element} [source]  The authored element, if there was one.
  */
 
@@ -122,18 +127,36 @@ export function readChildItems(host, key) {
     if (!child.matches(selector)) continue;
     const data = /** @type {HTMLElement} */ (child).dataset;
     const label = data[key] ?? '';
-    const note = child.textContent?.trim() || undefined;
 
     items.push({
       label,
       number: parseNumber(data.value),
-      note,
+      note: noteFrom(child),
       emphasis: 'emphasis' in data,
+      icon: iconFor(child),
       source: child,
     });
   }
 
   return items;
+}
+
+/**
+ * A child's own text, for the `note` field — with an inline `<svg data-icon>`
+ * subtree excluded. An icon's shape is not something to read aloud, and
+ * without this exclusion a stray `<title>` or text node inside it would leak
+ * into the note.
+ *
+ * @param {Element} child
+ * @returns {string|undefined}
+ */
+function noteFrom(child) {
+  const icon = child.querySelector(':scope > svg[data-icon]');
+  if (!icon) return child.textContent?.trim() || undefined;
+
+  const withoutIcon = /** @type {Element} */ (child.cloneNode(true));
+  withoutIcon.querySelector(':scope > svg[data-icon]')?.remove();
+  return withoutIcon.textContent?.trim() || undefined;
 }
 
 /**
@@ -173,8 +196,10 @@ function readListItems(host) {
     const text = li.textContent?.trim() ?? '';
     const emphasis = 'emphasis' in data;
 
+    const icon = iconFor(li);
+
     if (data.value !== undefined) {
-      items.push({ label: text, number: parseNumber(data.value), emphasis, source: li });
+      items.push({ label: text, number: parseNumber(data.value), emphasis, icon, source: li });
       continue;
     }
 
@@ -182,9 +207,15 @@ function readListItems(host) {
     const candidate = split === -1 ? null : parseNumber(text.slice(split + 1).trim());
 
     if (candidate?.valid) {
-      items.push({ label: text.slice(0, split).trim(), number: candidate, emphasis, source: li });
+      items.push({
+        label: text.slice(0, split).trim(),
+        number: candidate,
+        emphasis,
+        icon,
+        source: li,
+      });
     } else {
-      items.push({ label: text, number: parseNumber(undefined), emphasis, source: li });
+      items.push({ label: text, number: parseNumber(undefined), emphasis, icon, source: li });
     }
   }
 
@@ -220,6 +251,9 @@ export function parseItemList(raw) {
         label,
         number: parseNumber(value),
         emphasis: false,
+        // No attribute space in this shorthand for a fourth per-item fact —
+        // see the Item typedef above.
+        icon: null,
       };
     });
 }
