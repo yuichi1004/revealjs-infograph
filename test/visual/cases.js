@@ -31,33 +31,33 @@ export const CASES = [
   {
     id: 'stat',
     title: 'stat',
-    html: `<div data-infograph="stat" data-value="43.8%" data-label="回答者が同意"
-                data-note="n=1,204 / 2026年調査"></div>`,
+    html: `<div data-infograph="stat" data-value="43.8%" data-label="Respondents who say culture integration drove the results"
+                data-note="n=1,204 · 2026 internal survey"></div>`,
     note: 'Baseline for the type scale and for contrast on the ink-1 headline.',
   },
 
   {
     id: 'waffle',
     title: 'waffle',
-    html: `<div data-infograph="waffle" data-value="43.8%" data-label="同意した回答者"></div>`,
+    html: `<div data-infograph="waffle" data-value="43.8%" data-label="Respondents who agreed"></div>`,
     values: [43.8],
     note: 'Cell count, 10-column grid, square cells, contiguous fill.',
   },
 
   {
     id: 'bar-plain',
-    title: 'bar — 強調なし',
-    html: `<div data-infograph="bar" data-label="週あたりの稼働場所"
-                data-items="在宅: 34, 出社: 52, ハイブリッド: 71"></div>`,
+    title: 'bar — no emphasis',
+    html: `<div data-infograph="bar" data-label="Where people work each week"
+                data-items="Remote: 34, Office: 52, Hybrid: 71"></div>`,
     values: [34, 52, 71],
     note: 'Common baseline and length proportionality; all bars one colour.',
   },
 
   {
     id: 'bar-emphasis',
-    title: 'bar — 強調あり',
-    html: `<div data-infograph="bar" data-label="週あたりの稼働場所" data-emphasis="3"
-                data-items="在宅: 34, 出社: 52, ハイブリッド: 71"></div>`,
+    title: 'bar — with emphasis',
+    html: `<div data-infograph="bar" data-label="Where people work each week" data-emphasis="3"
+                data-items="Remote: 34, Office: 52, Hybrid: 71"></div>`,
     values: [34, 52, 71],
     emphasis: 3,
     note: 'Signalling: exactly one bar keeps the mark colour, the rest go gray.',
@@ -65,9 +65,9 @@ export const CASES = [
 
   {
     id: 'bar-long-labels',
-    title: 'bar — 長いラベル',
-    html: `<div data-infograph="bar" data-label="部門別"
-                data-items="プラットフォーム基盤: 88, 情報システム: 41, コーポレートIT: 63"></div>`,
+    title: 'bar — long labels',
+    html: `<div data-infograph="bar" data-label="By department"
+                data-items="Platform Engineering: 88, IT Systems: 41, Corporate IT: 63"></div>`,
     values: [88, 41, 63],
     note: 'Labels of unequal width must not ragged the bars’ shared left edge.',
   },
@@ -76,9 +76,9 @@ export const CASES = [
     id: 'flow',
     title: 'flow',
     html: `<div data-infograph="flow">
-             <div data-step="課題">分断されたチーム</div>
-             <div data-step="介入">文化統合</div>
-             <div data-step="結果">リードタイム 66% 短縮</div>
+             <div data-step="Problem">Fragmented teams</div>
+             <div data-step="Intervention">Culture integration</div>
+             <div data-step="Result">66% shorter lead time</div>
            </div>`,
     note: 'Connectors sit in the gaps between steps, never at the ends.',
   },
@@ -86,9 +86,9 @@ export const CASES = [
   {
     id: 'compare',
     title: 'compare',
-    html: `<div data-infograph="compare" data-label="平均リードタイム">
-             <div data-item="導入前" data-value="18日"></div>
-             <div data-item="導入後" data-value="6日"></div>
+    html: `<div data-infograph="compare" data-label="Average lead time">
+             <div data-item="Before" data-value="18 days"></div>
+             <div data-item="After" data-value="6 days"></div>
            </div>`,
     values: [18, 6],
     note: 'Derived delta is rendered, and the second side carries the emphasis.',
@@ -98,15 +98,23 @@ export const CASES = [
     id: 'venn-narrow',
     title: 'venn — overlap 0.05',
     html: `<div data-infograph="venn" data-overlap="0.05"
-                data-a="内製開発" data-b="グローバル化" data-ab="文化統合"></div>`,
+                data-a="In-house development" data-b="Globalization" data-ab="Culture integration"></div>`,
     note: 'Lens geometry at the small end; labels must stay under their circles.',
+  },
+
+  {
+    id: 'venn-default',
+    title: 'venn — overlap 0.35 (default)',
+    html: `<div data-infograph="venn" data-overlap="0.35"
+                data-a="In-house development" data-b="Globalization" data-ab="Culture integration"></div>`,
+    note: 'The doc example — same markup as the README, so the gallery image is provably accurate.',
   },
 
   {
     id: 'venn-wide',
     title: 'venn — overlap 0.55',
     html: `<div data-infograph="venn" data-overlap="0.55"
-                data-a="内製開発" data-b="グローバル化" data-ab="文化統合"></div>`,
+                data-a="In-house development" data-b="Globalization" data-ab="Culture integration"></div>`,
     note: 'Lens geometry at the large end. Same labels, so a diff isolates shape.',
   },
 ];
