@@ -30,6 +30,7 @@ enforced and where.
 | [`compare`](#compare--two-points-in-time)<br>two points in time, with the delta computed for you  | ![compare example](test/visual/__screenshots__/screenshots.spec.js/compare.png)                              |
 | [`venn`](#venn--when-the-overlap-is-the-point)<br>when the overlap between two sets is the point  | ![venn example](test/visual/__screenshots__/screenshots.spec.js/venn-default.png)                            |
 | [`pyramid`](#pyramid--a-hierarchy-narrowest-at-the-top)<br>a hierarchy, narrowest at the top      | ![pyramid example: Maslow's hierarchy of needs](test/visual/__screenshots__/screenshots.spec.js/pyramid.png) |
+| [`cycle`](#cycle--a-process-that-repeats)<br>a continuous, repeating process                      | ![cycle example: PDCA](test/visual/__screenshots__/screenshots.spec.js/cycle.png)                            |
 | [pictogram marks](#pictogram-marks)<br>`waffle` and `bar` drawn as repeated silhouettes           | ![waffle drawn with person silhouettes](test/visual/__screenshots__/screenshots.spec.js/waffle-symbol.png)   |
 
 These images are the exact artifacts `npm run test:visual:docker` generates and verifies inside a
@@ -310,6 +311,38 @@ every other form uses. `data-emphasis` highlights one tier, same rule as `bar`.
 | `data-value` on a tier | Printed next to the label; never encoded in the tier's width |
 
 A pyramid stays readable for two to seven tiers — Maslow's own hierarchy is five.
+
+### `cycle` — a process that repeats
+
+![cycle example: PDCA](test/visual/__screenshots__/screenshots.spec.js/cycle.png)
+
+```html
+<div data-infograph="cycle">
+  <ul>
+    <li>Plan</li>
+    <li>Do</li>
+    <li>Check</li>
+    <li>Act</li>
+  </ul>
+</div>
+```
+
+First stage sits at the top, the rest proceed clockwise, and the last one closes back to the first
+— the whole reason this is a separate form from `flow`: a straight sequence ends, a cycle doesn't,
+and a reader has to be told which one they're looking at. The accessible name states the closure
+explicitly ("Plan → Do → Check → Act → Plan"), since nothing about reading the labels left to right
+would otherwise convey that it loops.
+
+The connectors are real arcs along the ring, not straight lines between stages — straight chords
+between four stages trace a rhombus, not a circle. Connectors are chrome, not a mark: they stay one
+neutral colour regardless of `data-emphasis`, the same rule `flow`'s arrows already follow.
+
+| Attribute             | Meaning                                     |
+| --------------------- | ------------------------------------------- |
+| `<li>` / `data-stage` | One stage's label, in order around the ring |
+| `data-emphasis`       | Which stage to emphasise (1-based)          |
+
+A cycle stays readable for two to eight stages.
 
 ### Pictogram marks
 
