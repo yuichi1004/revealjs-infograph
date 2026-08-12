@@ -19,7 +19,7 @@
 import { advise } from '../warn.js';
 
 /**
- * @typedef {'compare'|'part-of-whole'|'change'|'flow'|'overlap'|'single'} Intent
+ * @typedef {'compare'|'part-of-whole'|'change'|'flow'|'overlap'|'single'|'hierarchy'} Intent
  */
 
 /**
@@ -43,6 +43,8 @@ const BY_INTENT = {
   overlap: 'venn',
   /** A single headline number → type, not a chart. */
   single: 'stat',
+  /** Ranked levels → narrowest at the top, geometry stating rank, not magnitude. */
+  hierarchy: 'pyramid',
 };
 
 /**
