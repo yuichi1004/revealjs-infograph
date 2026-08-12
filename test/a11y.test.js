@@ -1,0 +1,99 @@
+/**
+ * The accessibility contract, stated once for every form.
+ *
+ * These are deliberately written as a loop over the registry rather than as
+ * per-form assertions: a new form added without an accessible name or with an
+ * unlabelled graphic should fail here on the day it is written, not whenever
+ * someone remembers to add a test for it.
+ */
+
+import { describe, it, expect } from 'vitest';
+import { render, all } from './helpers/mount.js';
+import { formNames } from '../src/forms/index.js';
+
+/** One representative, fully-specified example per built-in form. */
+const SAMPLES = {
+  stat: '<div data-infograph="stat" data-value="43.8%" data-label="回答者が同意" data-note="n=1,204"></div>',
+  waffle: '<div data-infograph="waffle" data-value="43.8%" data-label="同意した回答者"></div>',
+  bar: '<div data-infograph="bar" data-label="働き方" data-items="在宅: 34, 出社: 52"></div>',
+  flow: `<div data-infograph="flow">
+           <div data-step="課題">分断されたチーム</div>
+           <div data-step="結果">+43.8%</div>
+         </div>`,
+  compare: `<div data-infograph="compare" data-label="平均リードタイム">
+              <div data-item="導入前" data-value="18日"></div>
+              <div data-item="導入後" data-value="6日"></div>
+            </div>`,
+  venn: '<div data-infograph="venn" data-a="内製開発" data-b="グローバル化" data-ab="文化統合"></div>',
+};
+
+it('has a sample for every registered form', () => {
+  // Guards the loops below from silently skipping a newly added form.
+  expect(Object.keys(SAMPLES).sort()).toEqual(formNames().sort());
+});
+
+describe.each(Object.entries(SAMPLES))('%s', (form, html) => {
+  it('is a figure element, so it can be skipped as one unit', () => {
+    expect(render(html).tagName).toBe('FIGURE');
+  });
+
+  it('has a non-empty accessible name', () => {
+    const label = render(html).getAttribute('aria-label');
+    expect(label && label.trim().length).toBeGreaterThan(0);
+  });
+
+  it('tags itself with its form, for host-theme targeting', () => {
+    expect(render(html).dataset.igForm).toBe(form);
+  });
+
+  it('leaves no graphic in the accessible tree without a text equivalent', () => {
+    const figure = render(html);
+    // SVG and mark containers are hidden; whatever remains visible to a screen
+    // reader must be text, not geometry.
+    for (const svg of all(figure, 'svg')) {
+      expect(svg.closest('[aria-hidden="true"]')).not.toBeNull();
+    }
+  });
+
+  it('never leaves an aria-hidden="false" attribute lying around', () => {
+    // A present-but-false aria-hidden is the classic way to hide nothing while
+    // looking like you hid something; el() drops falsey attributes for this.
+    expect(all(render(html), '[aria-hidden="false"]')).toHaveLength(0);
+  });
+
+  it('renders identically twice — no id or state leaks between figures', () => {
+    const a = render(html);
+    const b = render(html);
+    // venn mints a unique clip id per figure by design; everything else must
+    // be byte-identical, or two copies of a figure on one deck would differ.
+    const strip = (/** @type {HTMLElement} */ node) =>
+      node.innerHTML.replace(/ig-venn-clip-\d+/g, 'ig-venn-clip-N');
+    expect(strip(a)).toBe(strip(b));
+  });
+});
+
+describe('tabular fallback', () => {
+  it.each(['waffle', 'bar', 'compare'])('%s states its numbers in a table', (form) => {
+    // These three encode magnitude in geometry that is hidden from assistive
+    // tech, so the numbers have to be available some other way.
+    const table = render(SAMPLES[form]).querySelector('table');
+    expect(table).not.toBeNull();
+    expect(table?.querySelector('caption')?.textContent?.trim()).toBeTruthy();
+    expect(table?.querySelectorAll('th[scope="col"]').length).toBeGreaterThan(0);
+    expect(table?.querySelectorAll('th[scope="row"]').length).toBeGreaterThan(0);
+  });
+
+  it.each(['stat', 'flow', 'venn'])('%s needs no table — its text already reads', (form) => {
+    // Duplicating text that is already in the accessible tree makes a screen
+    // reader say everything twice, which is its own accessibility problem.
+    expect(render(SAMPLES[form]).querySelector('table')).toBeNull();
+  });
+
+  it('hides the table visually without hiding it from assistive tech', () => {
+    const wrapper = render(SAMPLES.bar).querySelector('.ig-sr-only');
+    expect(wrapper).not.toBeNull();
+    expect(wrapper?.getAttribute('aria-hidden')).toBeNull();
+    // Styled inline, so the fallback still works if the stylesheet is missing.
+    expect(/** @type {HTMLElement} */ (wrapper).style.position).toBe('absolute');
+  });
+});

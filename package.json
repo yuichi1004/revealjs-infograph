@@ -1,0 +1,82 @@
+{
+  "name": "revealjs-infograph",
+  "version": "0.1.0",
+  "description": "Cognitive-science-grounded infographics for reveal.js, written as plain HTML attributes",
+  "type": "module",
+  "license": "MIT",
+  "author": "Yuichi Murata",
+  "keywords": [
+    "reveal.js",
+    "reveal.js-plugin",
+    "infographic",
+    "dataviz",
+    "slides"
+  ],
+  "engines": {
+    "node": ">=20"
+  },
+  "sideEffects": [
+    "*.css"
+  ],
+  "main": "./src/index.js",
+  "types": "./types/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./types/index.d.ts",
+      "default": "./src/index.js"
+    },
+    "./styles.css": "./styles/infograph.css",
+    "./forms/*.js": "./src/forms/*.js",
+    "./forms/*": "./src/forms/*.js",
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "src",
+    "styles",
+    "types",
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build && npm run build:types",
+    "build:types": "tsc -p tsconfig.build.json",
+    "typecheck": "tsc -p tsconfig.json",
+    "lint": "eslint .",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage",
+    "test:visual": "playwright test",
+    "test:visual:docker": "bash scripts/visual-docker.sh",
+    "test:visual:update": "bash scripts/visual-docker.sh --update-snapshots",
+    "test:visual:report": "playwright show-report",
+    "validate:palette": "node scripts/validate-palette.js",
+    "preview": "vite preview"
+  },
+  "peerDependencies": {
+    "reveal.js": ">=5"
+  },
+  "peerDependenciesMeta": {
+    "reveal.js": {
+      "optional": true
+    }
+  },
+  "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "@fontsource-variable/inter": "^5.3.0",
+    "@playwright/test": "^1.62.1",
+    "@vitest/coverage-v8": "^4.1.10",
+    "eslint": "^10.8.1",
+    "eslint-config-prettier": "^10.1.8",
+    "globals": "^16.5.0",
+    "happy-dom": "^20.11.2",
+    "prettier": "^3.6.2",
+    "reveal.js": "^6.0.1",
+    "typescript": "^5.9.3",
+    "vite": "^8.2.1",
+    "vitest": "^4.1.10"
+  }
+}
