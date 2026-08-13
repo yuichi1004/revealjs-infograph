@@ -988,6 +988,56 @@ test.describe('cycle: a long or diagonal label grows away from the ring, not bac
 });
 
 /* ------------------------------------------------------------------ *
+ * venn — a label long enough to reach past the figure
+ * ------------------------------------------------------------------ */
+
+/*
+ * Neither existing legibility check can see this defect. `overflowingIn`
+ * compares `scrollWidth` to `clientWidth` on the label's own box, which a
+ * `transform`-positioned element doesn't grow to report — its box is exactly
+ * as wide as its (now-wrapped, bounded) content either way. And "the figure
+ * stays inside its container" (in the `legibility` block below) measures
+ * `.ig-figure` itself, which never resizes to the descendants spilling out of
+ * it. Only measuring a label's own rect against `.ig-figure`'s can catch it —
+ * which is exactly what wasn't being done before this fix existed.
+ */
+test.describe('venn: a long label grows downward, not past the figure', () => {
+  test('venn-long-a gets the tall-labels layout, venn-default does not', async ({ page }) => {
+    const long = await page.evaluate(
+      (sel) => document.querySelector(sel)?.classList.contains('ig-venn-tall-labels'),
+      `${stage('venn-long-a')} .ig-venn`,
+    );
+    const short = await page.evaluate(
+      (sel) => document.querySelector(sel)?.classList.contains('ig-venn-tall-labels'),
+      `${stage('venn-default')} .ig-venn`,
+    );
+    expect(long, 'a label this long must trigger the extra clearance').toBe(true);
+    expect(short, 'venn-default’s labels are short — nothing should move for them').toBe(false);
+  });
+
+  test('the long label stays inside the figure', async ({ page }) => {
+    const [figure] = await page.evaluate(rectsOf, [stage('venn-long-a'), '.ig-figure']);
+    const [labelA] = await page.evaluate(rectsOf, [stage('venn-long-a'), '.ig-venn-label-a']);
+
+    expect(
+      labelA.left,
+      'label A must not reach past the figure’s left edge',
+    ).toBeGreaterThanOrEqual(figure.left - 1);
+  });
+
+  test('the wrapped label does not run into the AB label below it', async ({ page }) => {
+    const [labelA] = await page.evaluate(rectsOf, [stage('venn-long-a'), '.ig-venn-label-a']);
+    const [labelAB] = await page.evaluate(rectsOf, [stage('venn-long-a'), '.ig-venn-label-ab']);
+
+    const overlapW = Math.min(labelA.right, labelAB.right) - Math.max(labelA.left, labelAB.left);
+    const overlapH = Math.min(labelA.bottom, labelAB.bottom) - Math.max(labelA.top, labelAB.top);
+    expect(overlapW > 0 && overlapH > 0, 'A (now two lines tall) must clear AB below it').toBe(
+      false,
+    );
+  });
+});
+
+/* ------------------------------------------------------------------ *
  * quadrant — four buckets, not a scatter plot
  * ------------------------------------------------------------------ */
 

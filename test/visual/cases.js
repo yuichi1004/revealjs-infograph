@@ -282,6 +282,14 @@ export const CASES = [
            </ul></div>`,
     note: 'Eight stages leaves little room between a node and its own label — the outward anchor keeps the label from touching the node beside it.',
   },
+
+  {
+    id: 'venn-long-a',
+    title: 'venn — a long label',
+    html: `<div data-infograph="venn" data-overlap="0.35"
+                data-a="社内開発とグローバル化推進の長期戦略" data-b="海外拠点" data-ab="文化統合"></div>`,
+    note: 'A label long enough to reach past the figure wraps and grows downward instead — the AB label below it moves to make room.',
+  },
 ];
 
 /** @param {string} id */

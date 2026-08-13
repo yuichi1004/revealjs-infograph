@@ -633,6 +633,20 @@
   padding-bottom: 3.2em;
 }
 
+/*
+ * A and B can each wrap to two lines under the max-width clamp on
+ * `.ig-venn-label-a`/`-b` below — this class (mightWrap() in
+ * src/forms/venn.js) reserves the extra room the AB label needs to clear
+ * them, so a wrapped A or B doesn't run into it. Conditional, not
+ * unconditional, for the same reason `.ig-cycle`'s `labelRadiusIcon` only
+ * applies when an icon is present: applying it to every venn would push the
+ * AB label further from A/B even when neither wraps, moving every existing
+ * baseline to guard against a case most figures don't have.
+ */
+.ig-venn-tall-labels {
+  padding-bottom: 5.6em;
+}
+
 .ig-venn-svg {
   display: block;
   width: 100%;
@@ -662,10 +676,22 @@
   height: 3.2em;
 }
 
+/*
+ * Kept equal to `.ig-venn-tall-labels`'s own `padding-bottom` above, not just
+ * similar to it — `inset: auto 0 0 0` anchors this layer to `.ig-venn`'s
+ * *bottom* edge and grows it upward by `height`, so growing the padding alone
+ * only pushes the whole layer (AB included) further down without giving AB
+ * any more room within it; the layer's own height is what actually does that.
+ * Confirmed by measurement, not assumed: bumping only the padding left AB
+ * overflowing `.ig-venn`'s own bottom edge by the same amount every time.
+ */
+.ig-venn-tall-labels .ig-venn-labels {
+  height: 5.6em;
+}
+
 .ig-venn-label {
   position: absolute;
   left: var(--ig-venn-x, 50%);
-  white-space: nowrap;
   font-size: var(--ig-label-size);
   font-weight: 700;
 }
@@ -682,15 +708,46 @@
  * the gap between them equal to the distance between the circle centres, so it
  * shrinks with the geometry but never reaches zero — the 0.35em keeps a gap
  * even at `data-overlap="1"`.
+ *
+ * `max-width` is what stops a long label reaching past the figure's own edge
+ * on the *outward* side instead — the failure this anchoring can't see on its
+ * own, because it only ever reasons about the gap between A and B, never about
+ * how much room is left before the figure ends.
+ *
+ * A bound tight enough to *guarantee* no overflow at every `data-overlap`
+ * would have to assume the worst case (circles as far apart as they get,
+ * ~31% of the figure's width free on each side) — and that bound is tighter
+ * than "In-house development" itself needs on one line. That label has never
+ * been an edge case; it's the doc example and the default of every bundled
+ * venn figure. A bound that wraps it to chase a guarantee for hypothetically
+ * long labels would be a regression for the completely ordinary one this
+ * package already ships. 46% is chosen instead to keep that label on one
+ * line at every overlap this package's own cases actually use (0.05–0.55),
+ * while still giving real, substantial relief to a genuinely long label —
+ * verified directly, not assumed: `test/visual/principles.spec.js` measures
+ * the reported CJK case against `.ig-figure`'s own box, the same reference
+ * principle 12 already uses for "the figure stays inside its container"
+ * elsewhere in that file.
+ *
+ * Wrapping (the default `white-space`, so nothing needs overriding back) is
+ * what makes the bound survivable rather than just another place to clip:
+ * CJK has no spaces to break on, but browsers already break between most CJK
+ * characters without help, so this needs no extra rule to fire — see the
+ * long-CJK case in test/visual/cases.js. `.ig-venn-tall-labels` (applied
+ * conditionally — see the comment on `.ig-venn` above) reserves the extra
+ * vertical room a wrapped A or B needs before the AB label starts.
  */
 .ig-venn-label-a {
   top: 0;
+  max-width: 46%;
+  text-align: right;
   color: var(--ig-ink-1);
   transform: translateX(calc(-100% - 0.35em));
 }
 
 .ig-venn-label-b {
   top: 0;
+  max-width: 46%;
   color: var(--ig-ink-2);
   transform: translateX(0.35em);
 }
@@ -705,6 +762,10 @@
   top: 1.6em;
   color: var(--ig-ink-3);
   transform: translateX(-50%);
+}
+
+.ig-venn-tall-labels .ig-venn-label-ab {
+  top: 3em;
 }
 
 /* ---------- pyramid ---------- */
