@@ -156,6 +156,21 @@ describe('animation lifecycle', () => {
 });
 
 describe('use without reveal.js', () => {
+  it('renders with no config argument at all — the README’s own example', () => {
+    // renderAll(document.body) is the exact call the README leads with under
+    // "Zero dependencies". Without a default, config.maxSeries inside
+    // checkEncoding() was undefined for every figure, so this silently fell
+    // back to unrendered markup plus one advisory per figure instead.
+    const host = document.createElement('div');
+    host.innerHTML = STAT;
+    document.body.append(host);
+
+    const figures = renderAll(host);
+    expect(figures).toHaveLength(1);
+    expect(figures[0].querySelector('.ig-stat-value')?.textContent).toBe('43.8%');
+    expect(console.warn).not.toHaveBeenCalled();
+  });
+
   it('renders into any element', () => {
     const host = document.createElement('div');
     host.innerHTML = STAT;

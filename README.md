@@ -82,9 +82,12 @@ plugins: [Highlight, Notes, CountUp, Infograph, ...(options.plugins ?? [])],
 ### Without reveal.js
 
 ```js
-import { renderAll, resolveConfig } from 'revealjs-infograph';
-renderAll(document.body, resolveConfig());
+import { renderAll } from 'revealjs-infograph';
+renderAll(document.body);
 ```
+
+Pass a second argument — `resolveConfig({ maxSeries: 6 })`, say — to override the deck-wide
+defaults from `src/options.js`; `renderAll(document.body)` alone uses them as-is.
 
 ---
 
