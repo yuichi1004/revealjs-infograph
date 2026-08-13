@@ -14,7 +14,7 @@
  * DOM we last produced.
  */
 
-import { resolveElementConfig } from './options.js';
+import { resolveElementConfig, resolveConfig } from './options.js';
 import { getForm } from './forms/index.js';
 import { recommendForm, checkEncoding } from './design/encode.js';
 import { readItems } from './parse.js';
@@ -79,10 +79,12 @@ export function restore(host) {
  * Render one authored element in place.
  *
  * @param {Element} host
- * @param {import('./options.js').InfographConfig} config
+ * @param {import('./options.js').InfographConfig} [config] Defaults to
+ *   `resolveConfig()` — the plain-defaults config a page with no reveal.js
+ *   deck-wide settings would want.
  * @returns {HTMLElement|null} The figure, or null if nothing was rendered.
  */
-export function renderHost(host, config) {
+export function renderHost(host, config = resolveConfig()) {
   restore(host);
   if (!authored.has(host)) authored.set(host, { html: host.innerHTML, form: '' });
 
@@ -126,12 +128,15 @@ export function renderHost(host, config) {
  *
  * Usable without reveal.js at all — this is the whole public surface for
  * embedding a figure in a page, and the entry point every test uses.
+ * `config` defaults to `resolveConfig()` so `renderAll(document.body)` on its
+ * own — the "zero dependencies" path the README leads with — actually works,
+ * rather than throwing inside `checkEncoding()` on the first figure it meets.
  *
  * @param {Element|Document|null|undefined} root
- * @param {import('./options.js').InfographConfig} config
+ * @param {import('./options.js').InfographConfig} [config]
  * @returns {HTMLElement[]} The figures produced.
  */
-export function renderAll(root, config) {
+export function renderAll(root, config = resolveConfig()) {
   const scope = /** @type {Element} */ (
     root ?? (typeof document === 'undefined' ? null : document.body)
   );
