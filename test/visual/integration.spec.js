@@ -56,6 +56,27 @@ test.describe('the deck renders every figure', () => {
   });
 });
 
+test.describe('principle 2 in a real deck: the examples don’t trip their own advice', () => {
+  test('loading the deck logs no [infograph] console warning', async ({ page }) => {
+    // Every figure this package ships gets rendered eagerly on load (see the
+    // test above), so this is the whole surface a stray advisory could come
+    // from. A fixture-level count (principles.spec.js's bar-track loop) can't
+    // see this: it measures geometry on isolated cases, not what actually logs
+    // when the real, bundled deck comes up — which is what let a five-tier
+    // pyramid trip a warning meant for bar on every single load.
+    const warnings = [];
+    page.on('console', (msg) => {
+      if (msg.type() === 'warning' && msg.text().startsWith('[infograph]')) {
+        warnings.push(msg.text());
+      }
+    });
+
+    await openDeck(page);
+
+    expect(warnings, `the deck logged:${listing(warnings, (w) => w)}`).toEqual([]);
+  });
+});
+
 test.describe('principle 10 in a real deck: the resting state is the finished state', () => {
   test('print view shows every figure fully painted', async ({ page }) => {
     // The one that matters most. A figure that depends on an entrance animation

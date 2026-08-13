@@ -368,6 +368,15 @@ describe('pyramid', () => {
     expect(warnings().join()).toMatch(/more than 7/);
   });
 
+  it('does not trip bar’s working-memory ceiling — a hierarchy is read one tier at a time', () => {
+    // Five tiers is within pyramid's own MAX_TIERS but past bar's maxSeries: 4.
+    // checkEncoding() must not apply bar's simultaneous-decode ceiling here —
+    // this is the exact shape of the bundled Maslow example, which used to
+    // trip this warning on every load.
+    render(maslow);
+    expect(warnings().join()).not.toMatch(/hard to hold in mind/);
+  });
+
   it('hides the shape from assistive tech and keeps the labels', () => {
     const figure = render(maslow);
     expect(
@@ -473,6 +482,13 @@ describe('cycle', () => {
     const items = Array.from({ length: 9 }, (_, i) => `<li>Stage ${i}</li>`).join('');
     render(`<div data-infograph="cycle"><ul>${items}</ul></div>`);
     expect(warnings().join()).toMatch(/more than 8/);
+  });
+
+  it('does not trip bar’s working-memory ceiling — a cycle is read one stage at a time', () => {
+    // Six stages is within cycle's own MAX_STAGES but past bar's maxSeries: 4.
+    const items = Array.from({ length: 6 }, (_, i) => `<li>Stage ${i}</li>`).join('');
+    render(`<div data-infograph="cycle"><ul>${items}</ul></div>`);
+    expect(warnings().join()).not.toMatch(/hard to hold in mind/);
   });
 
   it('hides the ring from assistive tech and keeps the labels', () => {
