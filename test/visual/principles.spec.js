@@ -913,6 +913,80 @@ test.describe('cycle: a closed loop, drawn as real arcs', () => {
   });
 });
 
+/*
+ * cycle — a long or diagonal label must not grow back into the ring
+ *
+ * `cycle` (PDCA) only ever exercises short English words at the four
+ * cardinal points, which is exactly why the overlap this fixes went
+ * unnoticed: a diagonal stage (a 6-stage ring) or a longer label (Japanese
+ * text, or an 8-stage ring's tighter spacing) is what actually reaches back
+ * over the arc or its own node. `elementFromPoint` can't see it either — the
+ * whole `.ig-cycle-labels` layer is `pointer-events: none`, so a hit test
+ * passes straight through a label to the SVG underneath. The only way to
+ * measure it is geometry: sample the arc's own curve (the same points it is
+ * actually drawn through, not its bounding box, which is mostly empty
+ * wedge-shaped space) and check none of them land inside a label's box.
+ */
+test.describe('cycle: a long or diagonal label grows away from the ring, not back into it', () => {
+  // Mirrors MAX_INSET_DEG in src/forms/cycle.js, so the sampled arc matches
+  // what is actually drawn.
+  const MAX_INSET_DEG = 14;
+
+  for (const id of ['cycle-6-ja', 'cycle-8']) {
+    test(`${id}: no label overlaps the arc beside it`, async ({ page }) => {
+      const svg = (await page.evaluate(rectsOf, [stage(id), '.ig-cycle-svg']))[0];
+      const labels = await page.evaluate(rectsOf, [stage(id), '.ig-cycle-label']);
+      const n = labels.length;
+      const step = 360 / n;
+      const inset = Math.min(MAX_INSET_DEG, step / 4);
+
+      // A user-unit point on the ring, mapped into the same page-pixel space
+      // rectsOf() reports label boxes in.
+      const toPage = (deg) => {
+        const [ux, uy] = cyclePoint(deg, CYCLE.radius);
+        return {
+          x: svg.left + (ux / CYCLE.width) * svg.width,
+          y: svg.top + (uy / CYCLE.height) * svg.height,
+        };
+      };
+      const within = (rect, p) =>
+        p.x >= rect.left && p.x <= rect.right && p.y >= rect.top && p.y <= rect.bottom;
+
+      const offenders = [];
+      for (let i = 0; i < n; i++) {
+        const start = cycleAngle(i, n) + inset;
+        const end = cycleAngle(i, n) + step - inset;
+        // One sample per degree along the drawn arc — dense enough that a
+        // real crossing cannot fall between two samples.
+        for (let deg = start; deg <= end; deg += 1) {
+          const p = toPage(deg);
+          labels.forEach((label, li) => {
+            if (within(label, p)) offenders.push(`arc ${i} at ${deg.toFixed(1)}° × label ${li}`);
+          });
+        }
+      }
+
+      expect(
+        offenders,
+        `arc points landing inside a label box:${listing(offenders, (o) => o)}`,
+      ).toEqual([]);
+    });
+
+    test(`${id}: no label overlaps its own node`, async ({ page }) => {
+      const nodes = await page.evaluate(rectsOf, [stage(id), '.ig-cycle-node']);
+      const labels = await page.evaluate(rectsOf, [stage(id), '.ig-cycle-label']);
+      expect(labels).toHaveLength(nodes.length);
+
+      nodes.forEach((node, i) => {
+        const label = labels[i];
+        const overlapW = Math.min(node.right, label.right) - Math.max(node.left, label.left);
+        const overlapH = Math.min(node.bottom, label.bottom) - Math.max(node.top, label.top);
+        expect(overlapW > 0 && overlapH > 0, `node ${i} and its own label overlap`).toBe(false);
+      });
+    });
+  }
+});
+
 /* ------------------------------------------------------------------ *
  * quadrant — four buckets, not a scatter plot
  * ------------------------------------------------------------------ */

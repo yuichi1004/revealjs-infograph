@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { render, text, all, warnings } from './helpers/mount.js';
 import { formNames, registerForm } from '../src/forms/index.js';
-import { WAFFLE } from '../src/design/tokens.js';
+import { WAFFLE, CYCLE } from '../src/design/tokens.js';
 import { SYMBOLS, resolveSymbol, symbolUrl } from '../src/design/symbols.js';
 import { iconFor } from '../src/icon.js';
 
@@ -448,8 +448,8 @@ describe('cycle', () => {
     const cy = Number(first.getAttribute('cy'));
     // Top of a centred ring: same x as the centre, smaller y (SVG y grows
     // downward).
-    expect(cx).toBeCloseTo(170, 0);
-    expect(cy).toBeLessThan(170);
+    expect(cx).toBeCloseTo(CYCLE.centerX, 0);
+    expect(cy).toBeLessThan(CYCLE.centerY);
   });
 
   it('places every node the same distance from the centre', () => {
@@ -457,7 +457,7 @@ describe('cycle', () => {
     const distances = all(figure, '.ig-cycle-node').map((el) => {
       const cx = Number(el.getAttribute('cx'));
       const cy = Number(el.getAttribute('cy'));
-      return Math.hypot(cx - 170, cy - 170);
+      return Math.hypot(cx - CYCLE.centerX, cy - CYCLE.centerY);
     });
     for (const d of distances) expect(d).toBeCloseTo(distances[0], 5);
   });

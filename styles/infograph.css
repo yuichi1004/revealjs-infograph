@@ -823,11 +823,39 @@
   pointer-events: none;
 }
 
+/*
+ * Anchored outward, not centred — the same move `.ig-venn-label-a`/`-b` make
+ * one form over, generalised from venn's fixed left/right to a label at any
+ * angle around the ring.
+ *
+ * A plain `translate(-50%, -50%)` centres the label ON the point at
+ * `labelRadius`, so it extends *back toward the ring* by half its own size —
+ * invisible for a short word like "Plan", but a longer label (a 6-character
+ * Japanese phrase, an 8-stage ring's tighter spacing) reaches back far enough
+ * to cross the arc it sits beside, or touch its own node.
+ *
+ * `--ig-cycle-ox`/`-oy` (set per label in src/forms/cycle.js) is the unit
+ * vector from the ring's centre through this stage. At `ox = 1` (due east):
+ * `-50% + 50% * 1 = 0%`, so the label's left edge lands exactly on the anchor
+ * and the whole box grows rightward, away from the ring — the near edge sits
+ * at `labelRadius` instead of the centre doing. At `ox = -1` (due west) the
+ * label's *right* edge lands on the anchor instead, growing leftward. Due
+ * north/south, `ox = 0` and the horizontal translate reduces to the original
+ * `-50%` — there is no sideways growth to correct for, because a due
+ * north/south label's own centre already sits directly above or below the
+ * ring, not off to one side of it. `oy` does the same job on the vertical
+ * axis (so due north/south still shift vertically, toward whichever side has
+ * more clearance), and a diagonal stage blends both, growing away from the
+ * ring along whichever axis the outward direction actually favours.
+ */
 .ig-cycle-label {
   position: absolute;
   left: var(--ig-cycle-x, 50%);
   top: var(--ig-cycle-y, 50%);
-  transform: translate(-50%, -50%);
+  transform: translate(
+    calc(-50% + 50% * var(--ig-cycle-ox, 0)),
+    calc(-50% + 50% * var(--ig-cycle-oy, 0))
+  );
   white-space: nowrap;
   font-size: var(--ig-label-size);
   color: var(--ig-text);

@@ -147,12 +147,20 @@ export default function cycle({ host }) {
     'div',
     { class: cls('cycle-labels') },
     ...items.map((item, i) => {
-      const [x, y] = point(angle(i, n), labelRadius);
+      const deg = angle(i, n);
+      const [x, y] = point(deg, labelRadius);
       const classes = [cls('cycle-label'), item.emphasis ? cls('cycle-label', 'on') : ''];
+      // The unit vector from the ring's centre through this stage — CSS uses
+      // it to shift the label outward by (part of) its own size, so a long
+      // label grows away from the ring instead of extending back over it.
+      // See the long comment on .ig-cycle-label in styles/infograph.css.
+      const rad = (deg * Math.PI) / 180;
       const style = {
         '--ig-i': i,
         '--ig-cycle-x': `${pct(x, CYCLE.width)}%`,
         '--ig-cycle-y': `${pct(y, CYCLE.height)}%`,
+        '--ig-cycle-ox': round2(Math.cos(rad)),
+        '--ig-cycle-oy': round2(Math.sin(rad)),
       };
 
       // Icon and text split into two children only when there's an icon to
@@ -216,8 +224,8 @@ function angle(i, n) {
 function point(deg, radius) {
   const rad = (deg * Math.PI) / 180;
   return [
-    Math.round((CYCLE.centerX + radius * Math.cos(rad)) * 100) / 100,
-    Math.round((CYCLE.centerY + radius * Math.sin(rad)) * 100) / 100,
+    round2(CYCLE.centerX + radius * Math.cos(rad)),
+    round2(CYCLE.centerY + radius * Math.sin(rad)),
   ];
 }
 
@@ -229,4 +237,17 @@ function point(deg, radius) {
  */
 function pct(value, total) {
   return (value / total) * 100;
+}
+
+/**
+ * Two decimal places — enough precision for a screen, and (the reason this
+ * exists) enough to clean up the ~1e-16 floating-point noise `Math.cos`/
+ * `Math.sin` leave at angles that are conceptually exact, like 0 at due
+ * east. Left unrounded, that noise would end up in a CSS custom property and
+ * nudge a cardinal-direction label a fraction of a pixel off dead centre —
+ * an invisible-until-someone-diffs-the-baseline regression.
+ * @param {number} n
+ */
+function round2(n) {
+  return Math.round(n * 100) / 100;
 }
