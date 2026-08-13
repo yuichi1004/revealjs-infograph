@@ -73,14 +73,22 @@ confirming the painted edge moves outward monotonically from apex to base.
 "7±2" is about rehearsed digit strings. What you can hold _while reading a figure at the same
 time_ is closer to four.
 
-| Implementation                                                          | Where                                                                       |
-| ----------------------------------------------------------------------- | --------------------------------------------------------------------------- |
-| Advise past `maxSeries: 4`                                              | `DEFAULTS` in `src/options.js`, `checkEncoding()` in `src/design/encode.js` |
-| Venn never draws three circles (seven regions can't be solved mid-talk) | `src/forms/venn.js` (ignores `data-c` and explains why)                     |
-| Compare is two-item only; three or more routes to bar                   | `src/forms/compare.js`                                                      |
+| Implementation                                                                                                                             | Where                                                                       |
+| ------------------------------------------------------------------------------------------------------------------------------------------ | --------------------------------------------------------------------------- |
+| Advise past `maxSeries: 4` — scoped to `bar`, the one form whose series sit on screen at once, competing for the same working-memory slots | `DEFAULTS` in `src/options.js`, `checkEncoding()` in `src/design/encode.js` |
+| Venn never draws three circles (seven regions can't be solved mid-talk)                                                                    | `src/forms/venn.js` (ignores `data-c` and explains why)                     |
+| Compare is two-item only; three or more routes to bar                                                                                      | `src/forms/compare.js`                                                      |
 
-**Visual verification**: the bundled examples don't trip their own advice (rendered series count ≤
-4). A package that ships a figure it warns about isn't credible.
+`pyramid` and `cycle` ask a different task — one tier or stage at a time, Miller's span for
+sequential recall rather than Cowan's for simultaneous decoding — so each enforces its own, larger
+ceiling instead (`MAX_TIERS` in `src/forms/pyramid.js`, `MAX_STAGES` in `src/forms/cycle.js`).
+`checkEncoding()` used to apply `maxSeries` to every form regardless, which meant it contradicted
+those two forms' own advice rather than tightening anything — the five-tier Maslow example bundled
+with this package tripped it on every load, despite pyramid being fine with up to seven.
+
+**Visual verification**: loading the bundled examples deck (`examples/index.html`) never logs an
+`[infograph]` console warning at all — the literal test of "the bundled examples don't trip their
+own advice." A package that ships a figure it warns about isn't credible.
 
 ## 3. Spatial proximity — a legend splits attention
 

@@ -87,7 +87,22 @@ export function recommendForm(intent, itemCount, host) {
  * @param {Element} spec.host
  */
 export function checkEncoding({ form, items, config, host }) {
-  if (items.length > config.maxSeries) {
+  /*
+   * `maxSeries` is about chunks held *simultaneously* while decoding a chart —
+   * Cowan's ~4, not Miller's 7±2 for sequential recall. That is only the task
+   * `bar` asks of a reader: every series sits on screen at once, competing for
+   * the same working-memory slots.
+   *
+   * `pyramid` and `cycle` ask a different task — read one tier or stage at a
+   * time — and already enforce their own, larger ceilings on exactly that
+   * reasoning (`MAX_TIERS` in src/forms/pyramid.js, `MAX_STAGES` in
+   * src/forms/cycle.js). Applying this check to them too doesn't tighten
+   * anything; it just contradicts the form's own advice with a stricter,
+   * wrong one — which is what let the bundled five-tier Maslow example trip
+   * this exact warning on every load, despite pyramid being fine with up to
+   * seven.
+   */
+  if (form === 'bar' && items.length > config.maxSeries) {
     advise(
       `${form} has ${items.length} items; more than ${config.maxSeries} is hard to hold in mind`,
       {
