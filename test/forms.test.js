@@ -175,6 +175,34 @@ describe('flow', () => {
     render('<div data-infograph="flow"><div data-step="唯一"></div></div>');
     expect(warnings().join()).toMatch(/at least two steps/);
   });
+
+  it('advises past eight steps', () => {
+    const stepEls = Array.from(
+      { length: 9 },
+      (_, i) => `<div data-step="Step ${i}">Body ${i}</div>`,
+    ).join('');
+    render(`<div data-infograph="flow">${stepEls}</div>`);
+    expect(warnings().join()).toMatch(/more than 8/);
+  });
+
+  it('wraps each connector together with the step it introduces, so a line-wrap can never separate them', () => {
+    // flex-wrap only ever wraps at item boundaries — an arrow and step left as
+    // separate top-level children could land on opposite sides of a wrap. See
+    // .ig-flow-unit in styles/infograph.css for the geometry this guards.
+    const figure = render(steps);
+    const arrows = all(figure, '.ig-flow-arrow');
+    expect(arrows).toHaveLength(2);
+    for (const arrow of arrows) {
+      const parent = arrow.parentElement;
+      expect(parent?.classList.contains('ig-flow-unit')).toBe(true);
+      expect(parent?.querySelector('.ig-flow-step')).not.toBeNull();
+    }
+
+    // The first step has no connector before it, so nothing needs wrapping
+    // with it — it stays a bare child of .ig-flow, unlike the rest.
+    const [firstStep] = all(figure, '.ig-flow-step');
+    expect(firstStep.parentElement?.classList.contains('ig-flow-unit')).toBe(false);
+  });
 });
 
 describe('compare', () => {

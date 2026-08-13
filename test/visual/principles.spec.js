@@ -324,6 +324,40 @@ test.describe('principle 7: explicit connectors', () => {
     const tops = steps.map((s) => s.top);
     expect(Math.max(...tops) - Math.min(...tops)).toBeLessThan(1);
   });
+
+  /*
+   * A wrapped flow is the case the two tests above cannot see — both run on
+   * `flow`, whose three steps always fit on one row. `flow-wrapped`'s five
+   * steps do not, at this fixture's width, so the arrow-and-step grouping
+   * `.ig-flow-unit` exists for (styles/infograph.css) is actually exercised.
+   */
+  test('a wrapped flow keeps every connector on the same row as the step it introduces', async ({
+    page,
+  }) => {
+    const steps = await page.evaluate(rectsOf, [stage('flow-wrapped'), '.ig-flow-step']);
+    const arrows = await page.evaluate(rectsOf, [stage('flow-wrapped'), '.ig-flow-arrow']);
+    expect(arrows).toHaveLength(steps.length - 1);
+
+    // Prove this case actually wraps — otherwise the checks below would pass
+    // vacuously, the same way they always did on a single row.
+    const rows = new Set(steps.map((s) => Math.round(s.top))).size;
+    expect(rows, 'flow-wrapped must span more than one row to test anything').toBeGreaterThan(1);
+
+    // arrows[i] is the connector inside the same .ig-flow-unit as steps[i + 1]
+    // — the step it introduces (see src/forms/flow.js). Its vertical centre
+    // has to fall inside that step's own row, on both sides of a wrap: an
+    // arrow stranded at the end of the previous row, or a step starting a new
+    // row with no connector, would each put the two outside this range.
+    arrows.forEach((arrow, i) => {
+      const introduced = steps[i + 1];
+      const centre = (arrow.top + arrow.bottom) / 2;
+      expect(
+        centre,
+        `arrow ${i + 1} is not on the same row as the step it introduces`,
+      ).toBeGreaterThanOrEqual(introduced.top - 1);
+      expect(centre).toBeLessThanOrEqual(introduced.bottom + 1);
+    });
+  });
 });
 
 /* ------------------------------------------------------------------ *
