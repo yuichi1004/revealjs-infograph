@@ -54,12 +54,28 @@ export const VENN = {
  * src/forms/cycle.js — so a plain cycle's geometry, and its baseline
  * screenshot, do not move by a pixel when a sibling figure elsewhere starts
  * using icons.
+ *
+ * `width`/`height`/`centerX`/`centerY` are bigger than `2 * radius` needs —
+ * the gap between `labelRadius` (128) and the canvas edge (210) is a label's
+ * own clearance, not the ring's. Labels used to be centred on `labelRadius`,
+ * which reached back over the ring by half their own width; anchored outward
+ * instead (src/forms/cycle.js, `--ig-cycle-ox`/`-oy`), a label can now reach
+ * almost its *full* width past that point, on the side away from the ring. A
+ * canvas sized to the ring alone left no room for that reach, and clipped a
+ * label past the figure's own edge at 6+ stages or with a longer word. Widening
+ * the canvas without touching `radius` gives the label somewhere to grow into
+ * without changing the ring's own drawn size — `.ig-cycle`'s own CSS pixel
+ * footprint (`width: min(22rem, 100%)` in styles/infograph.css) is unaffected
+ * either way, so this only redistributes space *inside* that footprint from
+ * the ring to the label margin, at a scale verified against a 4-word English
+ * ring (8 stages) and a diagonal Japanese one (6 stages) — see the
+ * `cycle-8`/`cycle-6-ja` cases in test/visual/cases.js.
  */
 export const CYCLE = {
-  width: 340,
-  height: 340,
-  centerX: 170,
-  centerY: 170,
+  width: 420,
+  height: 420,
+  centerX: 210,
+  centerY: 210,
   radius: 100,
   nodeRadius: 9,
   labelRadius: 128,

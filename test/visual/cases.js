@@ -252,6 +252,36 @@ export const CASES = [
            </div>`,
     note: 'A connector and the step it introduces wrap onto the next row together — never a stranded arrow at the end of one row and a connector-less step starting the next.',
   },
+
+  {
+    id: 'cycle-6-ja',
+    title: 'cycle — six stages, Japanese labels',
+    html: `<div data-infograph="cycle"><ul>
+             <li>仮説</li>
+             <li>実験設計</li>
+             <li>実装</li>
+             <li>計測</li>
+             <li>振り返り</li>
+             <li>方針更新</li>
+           </ul></div>`,
+    note: 'A label at a diagonal stage grows away from the ring along whichever axis needs it, so a longer label never crosses the arc beside it.',
+  },
+
+  {
+    id: 'cycle-8',
+    title: 'cycle — eight stages',
+    html: `<div data-infograph="cycle"><ul>
+             <li>Intake</li>
+             <li>Triage</li>
+             <li>Assign</li>
+             <li>Fix</li>
+             <li>Review</li>
+             <li>Test</li>
+             <li>Ship</li>
+             <li>Monitor</li>
+           </ul></div>`,
+    note: 'Eight stages leaves little room between a node and its own label — the outward anchor keeps the label from touching the node beside it.',
+  },
 ];
 
 /** @param {string} id */
