@@ -49,6 +49,12 @@ Screenshot baselines are the one environment-sensitive part (font rasterisation 
 platform), so they're only ever generated inside the pinned Playwright Docker image. Details and
 current provenance: [`test/visual/__screenshots__/PROVENANCE.md`](test/visual/__screenshots__/PROVENANCE.md).
 
+They're also **position**-sensitive: the fixture stacks the cases in one column at fractional
+heights, so adding, reordering or resizing a case in `test/visual/cases.js` can shift baselines
+_below_ it by a pixel. That's a rounding artefact, not drift and not a regression — regenerate the
+affected images and check each is the same drawing at a 1px offset. Appending a new case to the end
+of `CASES` avoids it entirely. PROVENANCE.md has the full explanation.
+
 ## Language policy
 
 Conversation and issues can be in whatever language is convenient. Source code, comments, and
