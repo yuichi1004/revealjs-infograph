@@ -26,6 +26,26 @@ import { advise } from '../warn.js';
 
 let uid = 0;
 
+/**
+ * A rough, script-aware "might this wrap to more than one line" check — not a
+ * pixel-accurate prediction (only a real layout pass could give that; see the
+ * long comment on `.ig-venn-label-a` in styles/infograph.css for why this
+ * form doesn't attempt one), just a signal for whether the extra vertical
+ * clearance below is worth reserving. CJK characters render roughly twice as
+ * wide as Latin ones at the same font size, so the same "does this wrap"
+ * outcome needs a lower character count to trigger for CJK text than for
+ * Latin — a single universal threshold would either reserve unneeded space
+ * under a perfectly fine one-line Latin label like "In-house development" (20
+ * characters, and this file's own doc example above), or fail to reserve it
+ * for CJK labels less than half that length.
+ *
+ * @param {string} text
+ */
+function mightWrap(text) {
+  const cjk = /[぀-ヿ㐀-鿿豈-﫿]/.test(text);
+  return text.length > (cjk ? 8 : 20);
+}
+
 /** @type {import('./index.js').Form} */
 export default function venn({ host }) {
   const data = /** @type {HTMLElement} */ (host).dataset;
@@ -104,7 +124,10 @@ export default function venn({ host }) {
 
   const visual = el(
     'div',
-    { class: cls('venn'), style: { '--ig-venn-ratio': `${VENN.width} / ${VENN.height}` } },
+    {
+      class: [cls('venn'), [labelA, labelB].some(mightWrap) ? cls('venn', 'tall-labels') : ''],
+      style: { '--ig-venn-ratio': `${VENN.width} / ${VENN.height}` },
+    },
     hideFromAt(svg),
     labels,
   );
