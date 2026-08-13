@@ -239,6 +239,19 @@ export const CASES = [
            </div>`,
     note: 'The y-axis label is CJK — vertical-rl text must stay upright, never rotated onto its side.',
   },
+
+  {
+    id: 'flow-wrapped',
+    title: 'flow — five steps, wraps onto a second row',
+    html: `<div data-infograph="flow">
+             <div data-step="Discover">Interviews</div>
+             <div data-step="Define">Problem statement</div>
+             <div data-step="Develop">Prototypes</div>
+             <div data-step="Deliver">Pilot rollout</div>
+             <div data-step="Measure">Adoption metrics</div>
+           </div>`,
+    note: 'A connector and the step it introduces wrap onto the next row together — never a stranded arrow at the end of one row and a connector-less step starting the next.',
+  },
 ];
 
 /** @param {string} id */

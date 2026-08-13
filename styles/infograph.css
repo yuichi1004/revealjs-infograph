@@ -433,11 +433,55 @@
 /* ---------- flow ---------- */
 
 .ig-flow {
+  /*
+   * The step's own horizontal padding, on one side — read by `.ig-flow-unit`
+   * below as well as `.ig-flow-step` itself, so the two can never drift out
+   * of sync. `.ig-flow-compact` overrides only this custom property, not the
+   * padding declaration directly, for exactly that reason.
+   */
+  --ig-flow-pad-h: 1em;
   display: flex;
   align-items: stretch;
   justify-content: center;
   gap: 0.6em;
   flex-wrap: wrap;
+}
+
+/*
+ * A connector and the step it introduces, kept in one flex item.
+ *
+ * `flex-wrap` only ever wraps at item boundaries — it cannot split one item
+ * across two lines, but it also cannot keep two *separate* items on the same
+ * line once wrapping starts. Left as siblings of `.ig-flow`, an arrow and its
+ * step could end up on opposite sides of a wrap: the arrow stranded at the
+ * end of one row pointing at nothing, the row where the sequence actually
+ * continues starting with no connector at all. Wrapping them together is what
+ * stops both.
+ *
+ * The first step has no connector before it, so it stays a bare child of
+ * `.ig-flow` (see src/forms/flow.js) — nothing needs to be kept together with
+ * it, and there is exactly one fewer unit than there are steps.
+ *
+ * The flex-basis below is not a rounding convenience — it is what keeps every
+ * step the same width this produced before the connector moved inside a
+ * wrapper. With `flex-basis: 0` and `box-sizing: content-box` (the default,
+ * unset below), a flex item's own padding and border are added to its flex
+ * base size — so the first step silently contributes its own chrome
+ * (`2 * var(--ig-flow-pad-h)` + the 1px border on each side) to the shared
+ * growth pool, just by sitting at the top level. A step nested inside a unit
+ * cannot: its padding is invisible to that pool, resolved one level down,
+ * inside the unit's own separate flex layout. Left uncorrected, every step
+ * but the first ends up narrower by exactly that amount. Giving the unit a
+ * flex-basis of its connector's fixed width, this rule's own `gap`, *and*
+ * that same padding-and-border figure hands back precisely what the nested
+ * step cannot contribute on its own — which is why every step still comes
+ * out the same width this produced before the connector moved inside one.
+ */
+.ig-flow-unit {
+  display: flex;
+  align-items: stretch;
+  gap: 0.6em;
+  flex: 1 1 calc(1.4em + 7px + 0.6em + 2 * var(--ig-flow-pad-h) + 2px);
 }
 
 .ig-flow-step {
@@ -446,7 +490,7 @@
   display: flex;
   flex-direction: column;
   gap: 0.3em;
-  padding: 0.9em 1em;
+  padding: 0.9em var(--ig-flow-pad-h);
   border: 1px solid var(--ig-hairline);
   border-radius: var(--ig-radius);
   background: var(--ig-surface);
@@ -497,8 +541,12 @@
   border-left: 7px solid currentColor;
 }
 
+.ig-flow-compact {
+  --ig-flow-pad-h: 0.7em;
+}
+
 .ig-flow-compact .ig-flow-step {
-  padding: 0.6em 0.7em;
+  padding: 0.6em var(--ig-flow-pad-h);
 }
 
 /* ---------- compare ---------- */
