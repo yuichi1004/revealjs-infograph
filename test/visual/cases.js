@@ -225,6 +225,20 @@ export const CASES = [
            </div>`,
     note: 'A cell title gains a head row (icon + title) only when it has an icon.',
   },
+
+  {
+    id: 'quadrant-ja',
+    title: 'quadrant — Eisenhower matrix, in Japanese',
+    html: `<div data-infograph="quadrant"
+                data-x-label="緊急度" data-columns="緊急、緊急でない"
+                data-y-label="重要度" data-rows="重要、重要でない">
+             <div data-label="すぐやる"><ul><li>本番障害の対応</li><li>本日締切の提出物</li></ul></div>
+             <div data-label="計画する"><ul><li>来期ロードマップの策定</li></ul></div>
+             <div data-label="任せる"><ul><li>定型メールの返信</li></ul></div>
+             <div data-label="やめる"><ul><li>SNSの巡回</li></ul></div>
+           </div>`,
+    note: 'The y-axis label is CJK — vertical-rl text must stay upright, never rotated onto its side.',
+  },
 ];
 
 /** @param {string} id */

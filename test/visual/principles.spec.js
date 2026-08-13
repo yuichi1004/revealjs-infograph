@@ -943,6 +943,31 @@ test.describe('quadrant: four equal cells sharing the grid’s edges', () => {
   });
 
   /*
+   * `vertical-rl` plus a 180° flip reads a Latin y-axis label bottom-to-top,
+   * but the same flip turns upright CJK glyphs upside down and reverses their
+   * reading order — a defect a bounding-box check cannot see, since the label
+   * measures the same box either way. `sideways-lr` gives the same
+   * bottom-to-top Latin reading with no rotation at all, so this only checks
+   * that the no-rotation form actually took effect, in the browser this suite
+   * runs in — the pixels are what the `quadrant-ja` screenshot baseline pins.
+   */
+  test('a CJK y-axis label is set with no rotation applied', async ({ page }) => {
+    const style = await page.evaluate(
+      (sel) => {
+        const el = document.querySelector(sel);
+        const computed = getComputedStyle(/** @type {Element} */ (el));
+        return { writingMode: computed.writingMode, transform: computed.transform };
+      },
+      `${stage('quadrant-ja')} .ig-quadrant-y-label`,
+    );
+
+    expect(style.writingMode, 'sideways-lr must be supported by this test’s browser').toBe(
+      'sideways-lr',
+    );
+    expect(style.transform, 'no rotation is needed once sideways-lr is in effect').toBe('none');
+  });
+
+  /*
    * The direction of each axis — the thing issue #8 was about. An axis name on
    * its own says only what is measured; these assert that each *end* is named
    * and, more importantly, that each name is physically attached to the column

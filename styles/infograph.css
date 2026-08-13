@@ -905,11 +905,29 @@
   grid-area: x-label;
 }
 
+/*
+ * `vertical-rl` + a 180° flip is what makes a Latin label read bottom-to-top,
+ * the axis-label convention. But the flip rotates every glyph individually —
+ * harmless for Latin letters, which `text-orientation: mixed` already turns
+ * sideways, but for CJK it turns upright, top-to-bottom characters upside
+ * down and reads them bottom-to-top instead. `sideways-lr` gives the same
+ * bottom-to-top Latin reading (verified pixel-identical to the rule below,
+ * with no rotation needed) while leaving CJK glyphs upright — so it is a
+ * strict improvement wherever a browser implements it, and `@supports` keeps
+ * `vertical-rl` + rotate as a safe fallback where it does not.
+ */
 .ig-quadrant-y-label {
   grid-area: y-label;
+  justify-self: center;
   writing-mode: vertical-rl;
   transform: rotate(180deg);
-  justify-self: center;
+}
+
+@supports (writing-mode: sideways-lr) {
+  .ig-quadrant-y-label {
+    writing-mode: sideways-lr;
+    transform: none;
+  }
 }
 
 /* Reuses flow's card language (border, radius, surface fill) rather than
