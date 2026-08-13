@@ -288,10 +288,15 @@ export function readItems(host, key) {
  * author marks several, the first wins and the rest are dropped — two competing
  * highlights is the same as none, since the eye has nowhere to land.
  *
- * @param {Item[]} items
+ * Generic over anything with a mutable `emphasis` flag, not just `Item` —
+ * `quadrant`'s cells go through this too (src/forms/quadrant.js), and they
+ * carry a `label`/`items`/`icon` shape of their own, not a parsed number.
+ *
+ * @template {{ emphasis: boolean }} T
+ * @param {T[]} items
  * @param {string|undefined} attr  The host's `data-emphasis` value.
  * @param {Element} [host]         For the advisory message.
- * @returns {Item[]}
+ * @returns {T[]}
  */
 export function applyEmphasis(items, attr, host) {
   const marked = items.filter((item) => item.emphasis);

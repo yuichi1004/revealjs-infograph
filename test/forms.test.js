@@ -1160,3 +1160,89 @@ describe('registry', () => {
     expect(figure.dataset.density).toBe('compact');
   });
 });
+
+/*
+ * Every form that draws more than one homogeneous item can single one out
+ * with data-emphasis — bar, compare, pyramid, cycle, flow, quadrant. stat,
+ * waffle and venn are deliberately excluded: none of them has a list of
+ * interchangeable items to pick one from (stat is one value, waffle one
+ * share, venn's two circles are fixed roles, not a list).
+ *
+ * Written as a loop over that set, in the style of test/a11y.test.js's
+ * registry loop, rather than as one test per form scattered through the file
+ * above — flow silently dropped this exact wiring (readItems() went straight
+ * to the form, never through applyEmphasis()), and nothing here caught it
+ * until someone tried data-emphasis="2" on a flow and got three identical
+ * cards. A loop means the next form added to this set fails on the day it's
+ * written, not whenever someone remembers to check it by hand.
+ */
+describe('data-emphasis: parity across item forms', () => {
+  // Captured now, during collection, rather than inside the `it()` below:
+  // the 'registry' block above registers a 'custom-test' form as a side
+  // effect of one of its own tests, and describe() bodies (this one
+  // included) all run before any it() body does — so reading formNames()
+  // inside an it() here would see that registration leak in, order-dependent
+  // on which test happened to run first.
+  const BUILT_IN_FORMS = formNames();
+
+  const ITEM_FORMS = {
+    bar: {
+      html: '<div data-infograph="bar" data-emphasis="2" data-items="A: 1, B: 2, C: 3, D: 4"></div>',
+      onSelector: '.ig-bar-row',
+      onClass: 'ig-bar-row-on',
+      expected: [false, true, false, false],
+    },
+    compare: {
+      // compare only ever takes two items, and defaults its own emphasis to
+      // the second — data-emphasis="1" here is the one value that proves the
+      // host attribute is actually read, not just the built-in default.
+      html: '<div data-infograph="compare" data-emphasis="1" data-items="A: 1, B: 2"></div>',
+      onSelector: '.ig-compare-side',
+      onClass: 'ig-compare-side-on',
+      expected: [true, false],
+    },
+    flow: {
+      html: '<div data-infograph="flow" data-emphasis="2" data-items="A, B, C, D"></div>',
+      onSelector: '.ig-flow-step',
+      onClass: 'ig-flow-step-on',
+      expected: [false, true, false, false],
+    },
+    pyramid: {
+      html: '<div data-infograph="pyramid" data-emphasis="2" data-items="A, B, C, D"></div>',
+      onSelector: '.ig-pyramid-row',
+      onClass: 'ig-pyramid-row-on',
+      expected: [false, true, false, false],
+    },
+    cycle: {
+      html: '<div data-infograph="cycle" data-emphasis="2" data-items="A, B, C, D"></div>',
+      onSelector: '.ig-cycle-label',
+      onClass: 'ig-cycle-label-on',
+      expected: [false, true, false, false],
+    },
+    quadrant: {
+      html: `<div data-infograph="quadrant" data-emphasis="2">
+               <div data-label="A"></div>
+               <div data-label="B"></div>
+               <div data-label="C"></div>
+               <div data-label="D"></div>
+             </div>`,
+      onSelector: '.ig-quadrant-cell',
+      onClass: 'ig-quadrant-cell-on',
+      expected: [false, true, false, false],
+    },
+  };
+
+  it('covers exactly the forms with a list of interchangeable items', () => {
+    // stat, waffle and venn have no per-item emphasis to test — see the
+    // comment above. Guards this loop from silently skipping a new item form.
+    expect(Object.keys(ITEM_FORMS).sort()).toEqual(
+      BUILT_IN_FORMS.filter((name) => !['stat', 'waffle', 'venn'].includes(name)).sort(),
+    );
+  });
+
+  it.each(Object.entries(ITEM_FORMS))('%s honours host-level data-emphasis', (_, spec) => {
+    const figure = render(spec.html);
+    const marks = all(figure, spec.onSelector).map((el) => el.classList.contains(spec.onClass));
+    expect(marks).toEqual(spec.expected);
+  });
+});

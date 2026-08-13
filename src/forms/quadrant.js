@@ -49,7 +49,7 @@
 
 import { el, cls } from '../dom.js';
 import { figure } from '../a11y.js';
-import { readItems } from '../parse.js';
+import { readItems, applyEmphasis } from '../parse.js';
 import { iconFor, checkIcons } from '../icon.js';
 import { advise } from '../warn.js';
 
@@ -121,11 +121,13 @@ export default function quadrant({ host }) {
     };
   });
 
-  const anyEmphasis = cells.some((cell) => cell.emphasis);
-  if (data.emphasis && !anyEmphasis) {
-    const index = Number.parseInt(data.emphasis, 10);
-    if (Number.isFinite(index) && cells[index - 1]) cells[index - 1].emphasis = true;
-  }
+  // Same "one host attribute, or a marked child, never both contradicting
+  // each other" rule every other item form gets from readItems() — cells
+  // aren't Items (they come straight from host.children, not readItems()),
+  // but applyEmphasis() only ever needs an `.emphasis` boolean per entry, so
+  // it applies here unchanged rather than this form re-deriving its own
+  // (previously narrower — see git history) copy of the same rule.
+  applyEmphasis(cells, data.emphasis, host);
 
   checkIcons(cells, host, 'quadrant cell');
 

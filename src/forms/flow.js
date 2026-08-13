@@ -27,7 +27,7 @@
 
 import { el, cls } from '../dom.js';
 import { figure, hideFromAt } from '../a11y.js';
-import { readItems } from '../parse.js';
+import { readItems, applyEmphasis } from '../parse.js';
 import { checkIcons } from '../icon.js';
 import { advise } from '../warn.js';
 
@@ -43,7 +43,7 @@ const MAX_STEPS = 8;
 /** @type {import('./index.js').Form} */
 export default function flow({ host, config }) {
   const data = /** @type {HTMLElement} */ (host).dataset;
-  const items = readItems(host, 'step');
+  const items = applyEmphasis(readItems(host, 'step'), data.emphasis, host);
   const fragment = data.igFragment === 'steps' || data.igFragment === '';
 
   if (items.length < 2) {
