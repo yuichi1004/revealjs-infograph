@@ -12,6 +12,24 @@ git add test/visual/__screenshots__
 git commit -m "Regenerate visual baselines in the pinned container"
 ```
 
+## Why the update runs with `--update-snapshots=all`, not the bare flag
+
+Bare `--update-snapshots` defaults to Playwright's `"changed"` preset, which only
+rewrites a baseline when its own comparison first decides the new render doesn't match
+the old one. That comparison is more forgiving than `maxDiffPixels: 0` alone suggests —
+it also carries a default per-pixel colour-distance threshold, so a real but subtle fill
+change (a waffle glyph's unfilled colour moved from `--ig-muted` `#c9c8c2` to
+`--ig-hairline` `#e1e0d9`, see #21) can render as "0 diff pixels" and get reported as a
+pass, leaving the stale baseline in place with no error and no file change. Confirmed by
+hand: the bare flag left `waffle-symbol.png` untouched and green; `--update-snapshots=all`
+against the identical render rewrote it.
+
+`=all` skips that comparison and rewrites unconditionally, which is what a "regenerate
+the baselines" command should do. It costs nothing extra for cases that didn't change —
+the container's rendering is pinned and deterministic, so re-rendering an untouched case
+reproduces the same bytes — and it means the diagnosis for "why didn't my change show up"
+is never "the updater silently declined to look."
+
 ## If Docker isn't available
 
 `scripts/visual-docker.sh` assumes the running user is in the `docker` group (`sudo usermod -aG

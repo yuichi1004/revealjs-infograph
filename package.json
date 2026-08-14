@@ -59,7 +59,7 @@
     "test:coverage": "vitest run --coverage",
     "test:visual": "playwright test",
     "test:visual:docker": "bash scripts/visual-docker.sh",
-    "test:visual:update": "bash scripts/visual-docker.sh --update-snapshots",
+    "test:visual:update": "bash scripts/visual-docker.sh --update-snapshots=all",
     "test:visual:report": "playwright show-report",
     "validate:palette": "node scripts/validate-palette.js",
     "preview": "vite preview"
