@@ -268,6 +268,20 @@ partial-glyph defect above); and no icon overlaps the text it sits beside. The d
 mark-class allowlist gains `ig-icon` alongside `ig-waffle-cell` and `ig-bar-glyph`, so the exemption
 stays exactly as narrow as §5b's — one class, reviewably added, never "wherever a mask shows up."
 
+A second describe, `'icons: a declared hole is actually a hole'`, covers the one defect none of
+those can see. A mask is one colour, so every interior feature of these glyphs — the clock's face,
+the bang inside `alert`, the ruled lines on `document` — exists only as an absence, declared by
+winding a subpath against the shape it cuts. Wind it the same way and the nonzero fill rule adds it
+to a region that was already filled: the glyph renders as a solid blob with the same path data, the
+same viewBox and the same non-zero painted size. `document` shipped that way. The test asks the
+browser's own Canvas2D hit testing whether points inside each declared hole are painted, paired
+with solid points nearby so "nothing is filled" cannot pass it.
+
+Those paired solid points earn their keep on their own: `gear`'s teeth shipped floating clear of
+its ring, which is not a hole bug but has the same shape as one — the glyph read as a sun at every
+size, and nothing that measures a bounding box could tell. Sampling just past the ring's edge, on
+an axis tooth and on a diagonal one, is what says "cog" rather than "eight squares near a disc."
+
 ## 6. Progressive disclosure — let the pace match the audience
 
 The same content, revealed in stages, reliably measures better than all at once.
