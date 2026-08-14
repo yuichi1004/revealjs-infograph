@@ -225,15 +225,22 @@
 
 .ig-waffle-symbol .ig-waffle-cell {
   /*
-   * The hairline goes. An inset shadow is part of the element's paint, so the
-   * mask would carve it into an outline of the glyph's bounding box — visible
-   * noise inside every unfilled symbol. Without an edge to define them the
-   * unfilled glyphs need to carry themselves, so they take the de-emphasis gray
-   * that bars already use for "present, but not the subject".
+   * The hairline border goes. An inset shadow is part of the element's paint,
+   * so the mask would carve it into an outline of the glyph's bounding box —
+   * visible noise inside every unfilled symbol. Without an edge to define
+   * them, the unfilled glyphs need to carry themselves in fill alone.
+   *
+   * That fill is `--ig-hairline`, not `--ig-muted`. `--ig-muted` is the
+   * de-emphasis fill bar/cycle/pyramid use for data that is real but not the
+   * subject — a person silhouette painted in it reads as "56 people who
+   * disagreed", a second category the data never claimed. `--ig-hairline` is
+   * pure chrome (borders only, everywhere else it appears), so it carries no
+   * such claim: a person silhouette in it reads the same way the plain
+   * waffle's hairline-bordered square already does, as the rest of the whole.
    */
   box-shadow: none;
   border-radius: 0;
-  background: var(--ig-muted);
+  background: var(--ig-hairline);
 }
 
 .ig-waffle-symbol .ig-waffle-cell-on {

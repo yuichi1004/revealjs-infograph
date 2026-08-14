@@ -21,6 +21,7 @@
 import { test, expect } from '@playwright/test';
 import { VENN, centerDistance, CYCLE } from '../../src/design/tokens.js';
 import { SYMBOLS } from '../../src/design/symbols.js';
+import { contrastRatio } from '../../src/design/contrast.js';
 import { CASES, caseById } from './cases.js';
 import { openFixture, stage, figureIn, measureContrast, listing } from './helpers.js';
 import {
@@ -294,6 +295,51 @@ test.describe('principle 5: no decoration', () => {
       ).toEqual([]);
     });
   }
+
+  /*
+   * §5's own waffle rule: unfilled cells must read as the rest of the whole,
+   * not as a second category. Symbol mode used to relax it — the unfilled
+   * silhouettes were painted in `--ig-muted`, the exact fill bar/cycle/pyramid
+   * use for data that is real but de-emphasised, so a person shape in it read
+   * as "a person in the other group" rather than "not yet". Neither the DOM
+   * (happy-dom sees the same class either way) nor a screenshot diff (only
+   * checked outside the pinned container) would catch that colour regressing
+   * back — this measures the actual painted colour and the claim it makes.
+   */
+  test('waffle-symbol: unfilled cells are chrome-gray, not the real-data de-emphasis fill', async ({
+    page,
+  }) => {
+    const [unfilled] = await page.evaluate(stylesOf, [
+      stage('waffle-symbol'),
+      '.ig-waffle-cell:not(.ig-waffle-cell-on)',
+      ['background-color'],
+    ]);
+    const [deEmphasisedData] = await page.evaluate(stylesOf, [
+      stage('bar-emphasis'),
+      '.ig-bar-row:not(.ig-bar-row-on) .ig-bar-fill',
+      ['background-color'],
+    ]);
+    const [surface] = await page.evaluate(stylesOf, ['html', 'body', ['background-color']]);
+
+    expect(
+      unfilled['background-color'],
+      'the unfilled waffle glyph must not be painted in the same colour as real, de-emphasised data',
+    ).not.toBe(deEmphasisedData['background-color']);
+
+    // And it has to recede further toward the surface than that data fill
+    // does — "lighter than muted", not just "a different gray".
+    const unfilledContrast = contrastRatio(
+      unfilled['background-color'],
+      surface['background-color'],
+    );
+    const dataContrast = contrastRatio(
+      deEmphasisedData['background-color'],
+      surface['background-color'],
+    );
+    expect(unfilledContrast, 'unfilled waffle cell vs. de-emphasised data fill').toBeLessThan(
+      dataContrast,
+    );
+  });
 });
 
 /* ------------------------------------------------------------------ *
