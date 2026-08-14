@@ -145,12 +145,15 @@ export const SYMBOLS = {
     viewBox: VIEWBOX,
   },
 
-  // A plain triangle. The universal caution silhouette even bare, and the
-  // only way to add the exclamation mark inside it as a genuine hole would
-  // need bezier-perfect winding on non-circular geometry — not worth the
-  // fragility for a mark this recognisable without it.
+  // The caution triangle, with the exclamation mark cut out of it: a bar and
+  // a dot, each wound against the triangle so the same nonzero fill rule that
+  // hollows clock, target and gear drops them out. Bare, the triangle does not
+  // privilege the caution reading — a solid triangle cues "play", "delta" or
+  // "up" just as readily — so the bang is load-bearing, not detailing. Both
+  // cutouts are rectangles, which is why no bezier work is involved: reversing
+  // the point order is the whole of it.
   alert: {
-    path: 'M12 2.5L21.5 20.5 2.5 20.5z',
+    path: 'M12 2.5L21.5 20.5 2.5 20.5z' + 'M10.6 8.4v5.8h2.8v-5.8z' + 'M10.6 15.9v2.8h2.8v-2.8z',
     viewBox: VIEWBOX,
   },
 
@@ -163,28 +166,37 @@ export const SYMBOLS = {
   },
 
   // A cog: a ring (same hole trick as clock and target) with eight square
-  // teeth at 45° increments — the angles chosen specifically because their
-  // sines and cosines are 0, ±1 or ±0.7071, so every tooth centre is exact.
+  // teeth at 45° increments, each seated *into* the ring rather than floating
+  // clear of it. Detached teeth were the shipped bug, and not only at small
+  // sizes — a ring of separated squares is a sun at every size, because
+  // detached marks around a disc are what rays are. Seating them costs
+  // nothing: an axis tooth bites 0.7 into the ring and a diagonal one 1.7 (a
+  // square meets a diagonal radius corner-first, so it needs the extra to
+  // overlap at all), and both still end 8.2 from the centre — closer to a
+  // circular silhouette than the detached version managed.
   gear: {
     path:
       'M12 5.5a6.5 6.5 0 0 1 0 13 6.5 6.5 0 0 1 0-13z' +
       'M12 9.5a2.5 2.5 0 0 0 0 5 2.5 2.5 0 0 0 0-5z' +
-      'M19.5 10.8h2.4v2.4h-2.4z' +
-      'M16.95 16.95h2.4v2.4h-2.4z' +
-      'M10.8 19.5h2.4v2.4h-2.4z' +
-      'M4.65 16.95h2.4v2.4h-2.4z' +
-      'M2.1 10.8h2.4v2.4h-2.4z' +
-      'M4.65 4.65h2.4v2.4h-2.4z' +
-      'M10.8 2.1h2.4v2.4h-2.4z' +
-      'M16.95 4.65h2.4v2.4h-2.4z',
+      'M17.8 10.8h2.4v2.4h-2.4z' +
+      'M15.4 15.4h2.4v2.4h-2.4z' +
+      'M10.8 17.8h2.4v2.4h-2.4z' +
+      'M6.2 15.4h2.4v2.4h-2.4z' +
+      'M3.8 10.8h2.4v2.4h-2.4z' +
+      'M6.2 6.2h2.4v2.4h-2.4z' +
+      'M10.8 3.8h2.4v2.4h-2.4z' +
+      'M15.4 6.2h2.4v2.4h-2.4z',
     viewBox: VIEWBOX,
   },
 
   // A page with a folded corner (one six-point outline, the diagonal cut
   // standing in for the fold) plus three text-line bars, shortest one nearest
-  // the fold so it never crosses into the cut corner.
+  // the fold so it never crosses into the cut corner. The bars are wound
+  // against the page so they punch through it. Drawn the same way round they
+  // would sit inside a shape that is already solid — and a mask has only one
+  // colour, so "on top of the page" is not a thing this can render.
   document: {
-    path: 'M6 2h8l6 6v14H6z' + 'M8.5 8h5v1.4h-5z' + 'M8.5 12h9v1.4h-9z' + 'M8.5 16h9v1.4h-9z',
+    path: 'M6 2h8l6 6v14H6z' + 'M8.5 8v1.4h5v-1.4z' + 'M8.5 12v1.4h9v-1.4z' + 'M8.5 16v1.4h9v-1.4z',
     viewBox: VIEWBOX,
   },
 };

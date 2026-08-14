@@ -53,6 +53,30 @@ export function rectsOf([rootSelector, selector]) {
 }
 
 /**
+ * Whether each point falls inside `path`, under the nonzero fill rule.
+ *
+ * Nonzero is what a CSS `mask-image` applies to the SVG `symbolUrl()` inlines,
+ * and it is the whole reason a hole in one of these glyphs has to be wound
+ * against the shape it cuts. Canvas2D is the one thing in a browser that will
+ * answer "is this coordinate painted" for a `d` string without rasterising it
+ * and decoding pixels — and it reads the same string the mask does, arcs
+ * included, so this is the rule as the browser applies it rather than a
+ * reimplementation of it in the test.
+ *
+ * Points are in viewBox units: the canvas is left untransformed, so a 24×24
+ * viewBox maps 1:1 onto it.
+ *
+ * @param {[string, Array<[number, number]>]} args `[path, points]`
+ * @returns {boolean[]}
+ */
+export function filledPointsOf([path, points]) {
+  const context = document.createElement('canvas').getContext('2d');
+  if (!context) throw new Error('no 2d context');
+  const shape = new Path2D(path);
+  return points.map(([x, y]) => context.isPointInPath(shape, x, y));
+}
+
+/**
  * Computed values for every element matching `selector`.
  *
  * @param {[string, string, string[]]} args `[rootSelector, selector, properties]`

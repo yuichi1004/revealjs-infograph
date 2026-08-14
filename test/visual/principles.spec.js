@@ -20,6 +20,7 @@
 
 import { test, expect } from '@playwright/test';
 import { VENN, centerDistance, CYCLE } from '../../src/design/tokens.js';
+import { SYMBOLS } from '../../src/design/symbols.js';
 import { CASES, caseById } from './cases.js';
 import { openFixture, stage, figureIn, measureContrast, listing } from './helpers.js';
 import {
@@ -30,6 +31,7 @@ import {
   textCollisionsIn,
   decorationIn,
   masksOf,
+  filledPointsOf,
 } from './probes.js';
 
 test.beforeEach(async ({ page }) => {
@@ -1286,6 +1288,106 @@ test.describe('icons: an icon names, it never measures', () => {
       const labelRects = await page.evaluate(rectsOf, [stage(id), labels]);
       iconRects.forEach((icon, i) => {
         expect(rectsOverlap(icon, labelRects[i]), `icon ${i} overlaps its own label`).toBe(false);
+      });
+    });
+  }
+});
+
+/*
+ * A hole in an icon is a claim about winding, and nothing else in the suite can
+ * see it.
+ *
+ * These glyphs are painted as a one-colour mask, so every interior feature —
+ * the clock's face, the bang inside the alert triangle, the ruled lines on the
+ * document — exists only as an absence. It is declared by drawing a subpath the
+ * opposite way round from the shape it sits in, and under the nonzero fill rule
+ * a subpath wound the *same* way is simply added to a region that was already
+ * filled. The glyph then renders as a solid blob: same path data, same viewBox,
+ * same non-zero painted size, no error anywhere. `document` shipped that way —
+ * its three text bars were wound with the page and never appeared.
+ *
+ * So this asserts the absences directly, at points chosen from the geometry in
+ * src/design/symbols.js. Each entry pairs the holes with solid points around
+ * them, because "nothing is filled" would pass every one of these too.
+ */
+test.describe('icons: a declared hole is actually a hole', () => {
+  /** @type {Array<{ name: string, hollow: Array<[number, number]>, solid: Array<[number, number]> }>} */
+  const cutouts = [
+    {
+      name: 'alert',
+      // The bang: bar at y 8.4–14.2, dot at y 15.9–18.7, both x 10.6–13.4.
+      hollow: [
+        [12, 11],
+        [12, 17.3],
+      ],
+      // Triangle body above the bar, beside it, and in the bar-to-dot gap —
+      // that gap is what makes the cutouts read as a bang and not one slot.
+      solid: [
+        [12, 6],
+        [6, 19],
+        [12, 15],
+      ],
+    },
+    {
+      name: 'document',
+      // The three ruled lines, at y 8–9.4, 12–13.4 and 16–17.4.
+      hollow: [
+        [11, 8.7],
+        [12, 12.7],
+        [12, 16.7],
+      ],
+      solid: [
+        [12, 5],
+        [12, 20],
+      ],
+    },
+    {
+      name: 'clock',
+      // The face, between the ring's inner edge (r 6.4) and the hands.
+      hollow: [[12, 16]],
+      solid: [
+        [12, 3.5],
+        [12, 9],
+      ],
+    },
+    {
+      name: 'target',
+      // The gap ring, between the centre dot (r 3) and the outer ring (r 6).
+      hollow: [[12, 7.5]],
+      solid: [
+        [12, 12],
+        [12, 3.5],
+      ],
+    },
+    {
+      name: 'gear',
+      // The cog's bore (r 2.5).
+      hollow: [[12, 12]],
+      solid: [
+        [12, 7],
+        // Just past the ring's edge (r 6.5), on an axis tooth and on a
+        // diagonal one. These are the cog-vs-sun points: the teeth shipped
+        // detached, so both of these fell in the gap between the ring and a
+        // floating square, and eight floating squares around a disc are rays.
+        [18.6, 12],
+        [16.667, 16.667],
+      ],
+    },
+  ];
+
+  for (const { name, hollow, solid } of cutouts) {
+    test(`${name}: every cutout reads as a hole, and the shape around it still paints`, async ({
+      page,
+    }) => {
+      const path = SYMBOLS[name].path;
+      const inHole = await page.evaluate(filledPointsOf, [path, hollow]);
+      const inBody = await page.evaluate(filledPointsOf, [path, solid]);
+
+      inHole.forEach((filled, i) => {
+        expect(filled, `${name}: ${hollow[i]} should be cut out, but is painted`).toBe(false);
+      });
+      inBody.forEach((filled, i) => {
+        expect(filled, `${name}: ${solid[i]} should be painted, but is cut out`).toBe(true);
       });
     });
   }
