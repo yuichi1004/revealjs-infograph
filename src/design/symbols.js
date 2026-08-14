@@ -196,11 +196,7 @@ export const SYMBOLS = {
   // would sit inside a shape that is already solid — and a mask has only one
   // colour, so "on top of the page" is not a thing this can render.
   document: {
-    path:
-      'M6 2h8l6 6v14H6z' +
-      'M8.5 8v1.4h5v-1.4z' +
-      'M8.5 12v1.4h9v-1.4z' +
-      'M8.5 16v1.4h9v-1.4z',
+    path: 'M6 2h8l6 6v14H6z' + 'M8.5 8v1.4h5v-1.4z' + 'M8.5 12v1.4h9v-1.4z' + 'M8.5 16v1.4h9v-1.4z',
     viewBox: VIEWBOX,
   },
 };
