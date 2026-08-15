@@ -700,6 +700,35 @@ test.describe('pictogram marks', () => {
     await expect(unit).toHaveCount(1);
     await expect(unit).toContainText('10');
   });
+
+  test('the unit key is not the smallest text in the figure', async ({ page }) => {
+    // The key is the chart's scale, not a caption — it has to clear the same
+    // legibility bar as every other named text role. Compared against another
+    // element that resolves the same --ig-note-size token (rather than a
+    // hardcoded pixel literal in the test) so this stays a real regression
+    // guard: it fails the moment .ig-bar-unit's font-size stops matching the
+    // "note" role, whichever value that role is tuned to.
+    const [unit] = await page.evaluate(stylesOf, [
+      stage('bar-symbol'),
+      '.ig-bar-unit',
+      ['font-size'],
+    ]);
+    const [note] = await page.evaluate(stylesOf, [stage('stat'), '.ig-stat-note', ['font-size']]);
+    expect(unit['font-size']).toBe(note['font-size']);
+  });
+
+  test('the unit key stays adjacent to the glyphs it calibrates', async ({ page }) => {
+    // Proximity is what lets the key bind to the marks it explains rather than
+    // reading as an unrelated caption. Measured against the nearest glyph row
+    // rather than assuming a specific row, since the key renders after every
+    // bar's row in document order.
+    const [unit] = await page.evaluate(rectsOf, [stage('bar-symbol'), '.ig-bar-unit']);
+    const glyphRows = await page.evaluate(rectsOf, [stage('bar-symbol'), '.ig-bar-fill-symbol']);
+    expect(glyphRows.length).toBeGreaterThan(0);
+
+    const nearest = Math.min(...glyphRows.map((row) => rectDistance(unit, row)));
+    expect(nearest, 'gap between the unit key and its nearest glyph row').toBeLessThan(24);
+  });
 });
 
 /* ------------------------------------------------------------------ *
