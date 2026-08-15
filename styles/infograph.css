@@ -225,15 +225,22 @@
 
 .ig-waffle-symbol .ig-waffle-cell {
   /*
-   * The hairline goes. An inset shadow is part of the element's paint, so the
-   * mask would carve it into an outline of the glyph's bounding box — visible
-   * noise inside every unfilled symbol. Without an edge to define them the
-   * unfilled glyphs need to carry themselves, so they take the de-emphasis gray
-   * that bars already use for "present, but not the subject".
+   * The hairline border goes. An inset shadow is part of the element's paint,
+   * so the mask would carve it into an outline of the glyph's bounding box —
+   * visible noise inside every unfilled symbol. Without an edge to define
+   * them, the unfilled glyphs need to carry themselves in fill alone.
+   *
+   * That fill is `--ig-hairline`, not `--ig-muted`. `--ig-muted` is the
+   * de-emphasis fill bar/cycle/pyramid use for data that is real but not the
+   * subject — a person silhouette painted in it reads as "56 people who
+   * disagreed", a second category the data never claimed. `--ig-hairline` is
+   * pure chrome (borders only, everywhere else it appears), so it carries no
+   * such claim: a person silhouette in it reads the same way the plain
+   * waffle's hairline-bordered square already does, as the rest of the whole.
    */
   box-shadow: none;
   border-radius: 0;
-  background: var(--ig-muted);
+  background: var(--ig-hairline);
 }
 
 .ig-waffle-symbol .ig-waffle-cell-on {
@@ -343,6 +350,17 @@
   font-size: var(--ig-label-size);
   font-weight: 700;
   color: var(--ig-text);
+  /*
+   * Tabular, not proportional: this column is shared across every row (see the
+   * "one grid for the whole chart" comment on `.ig-bar` above), so every value
+   * sits at the same x — tabular figures are what makes that column line up
+   * digit-for-digit, which is the whole payoff of sharing it. The trade this
+   * buys: a short bar's value sits at the row's end, not right after its own
+   * fill, so binding a value to its own bar gets weaker the shorter the bar is.
+   * Chosen anyway because comparing values down the column is a real reading
+   * task for this form, on the same terms `.ig-bar`'s own comment argues for
+   * the shared label column.
+   */
   font-variant-numeric: tabular-nums;
 }
 

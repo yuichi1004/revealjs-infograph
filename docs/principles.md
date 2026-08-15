@@ -95,12 +95,12 @@ own advice." A package that ships a figure it warns about isn't credible.
 Put a legend next to a figure and the reader has to hold the colour-to-name mapping in mind while
 reading the figure itself.
 
-| Implementation                                                                            | Where                            |
-| ----------------------------------------------------------------------------------------- | -------------------------------- |
-| **Direct labelling by default**. `legend: false` in `DEFAULTS`                            | `src/options.js`                 |
-| Bar puts the label at the start of each row, the value at the end of the bar              | `src/forms/bar.js`               |
-| Venn puts each label at its own circle's x-position (geometry moves, label moves with it) | `label()` in `src/forms/venn.js` |
-| Waffle places the value and label directly under the grid                                 | `src/forms/waffle.js`            |
+| Implementation                                                                                                                                                        | Where                            |
+| --------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------- |
+| **Direct labelling by default**. `legend: false` in `DEFAULTS`                                                                                                        | `src/options.js`                 |
+| Bar puts the label at the start of each row; values share one column at the row's end, so `tabular-nums` keeps every digit aligned for comparing values down the list | `src/forms/bar.js`               |
+| Venn puts each label at its own circle's x-position (geometry moves, label moves with it)                                                                             | `label()` in `src/forms/venn.js` |
+| Waffle places the value and label directly under the grid                                                                                                             | `src/forms/waffle.js`            |
 
 **Visual verification**: a bar label shares vertical centre with its own row's track (±2px). A
 venn label stays on its own side of the midline and still reaches its own circle. Moving
@@ -173,11 +173,12 @@ so the reader never has to learn "this new colour means important."
 
 ## 5. The consistency principle — decoration works against understanding
 
-| Implementation                                                                                              | Where                               |
-| ----------------------------------------------------------------------------------------------------------- | ----------------------------------- |
-| No gradients, shadows, 3D, or decorative icons anywhere in the CSS                                          | all of `styles/infograph.css`       |
-| Waffle's unfilled cells are a near-surface gray, not a second hue (so they don't read as a second category) | `.ig-waffle-cell`                   |
-| Compare's decrease direction is never coloured red (a shrinking lead time is usually good news)             | comment on `.ig-compare-delta-down` |
+| Implementation                                                                                                                                                                               | Where                               |
+| -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------- |
+| No gradients, shadows, 3D, or decorative icons anywhere in the CSS                                                                                                                           | all of `styles/infograph.css`       |
+| Waffle's unfilled cells are a near-surface gray, not a second hue (so they don't read as a second category)                                                                                  | `.ig-waffle-cell`                   |
+| …and stay that gray in symbol mode too — `--ig-hairline`, never `--ig-muted` (the fill bar/cycle/pyramid use for real, de-emphasised _data_, which a silhouette painted in it would read as) | `.ig-waffle-symbol .ig-waffle-cell` |
+| Compare's decrease direction is never coloured red (a shrinking lead time is usually good news)                                                                                              | comment on `.ig-compare-delta-down` |
 
 **Visual verification**: no descendant of any form has a computed `background-image`, a
 `text-shadow`, or a blurred/offset `box-shadow`. `inset 0 0 0 1px` (the waffle's cell borders) is

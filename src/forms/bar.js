@@ -13,9 +13,13 @@
  * with no rotation and no truncation. Vertical bars are for when the category
  * axis is itself ordered (time), which is not what this form is for.
  *
- * Labels sit at the start of each row and values at the end of each bar — both
- * inside the figure, never in a legend. The reader never has to look away from
- * a mark to find out what it is.
+ * Labels sit at the start of each row, inside the figure, never in a legend —
+ * the reader never has to look away from a mark to find out what it is. Values
+ * share one column at the row's end rather than sitting right after each bar's
+ * own fill: a short bar's value floats further from its bar for it, but the
+ * shared column is what lets `tabular-nums` (see `.ig-bar-value` in
+ * styles/infograph.css) line every digit up, which is what makes comparing two
+ * values down the list a glance instead of a search.
  *
  * The baseline is always zero. Truncating a bar axis to "show the difference
  * better" makes length stop meaning magnitude, which is the one thing the form
