@@ -428,13 +428,21 @@
   flex: none;
 }
 
+/*
+ * The unit key is the chart's scale, not a caption — without it a glyph count
+ * cannot be mapped to a value at all, so it cannot be the smallest text in the
+ * figure the way a caption safely could be. `--ig-note-size` pulls the key
+ * glyph up with it too (`.ig-bar-glyph-key` below is sized in `em`, so it
+ * tracks whatever font-size it inherits), which is the same "painted like a
+ * mark but at text size" intent that glyph's own comment already states.
+ */
 .ig-bar-unit {
   grid-column: 2 / -1;
   display: flex;
   align-items: center;
   gap: 0.4em;
   margin: 0.2em 0 0;
-  font-size: 0.85rem;
+  font-size: var(--ig-note-size);
   color: var(--ig-text-2);
 }
 
