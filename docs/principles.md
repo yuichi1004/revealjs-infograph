@@ -95,12 +95,12 @@ own advice." A package that ships a figure it warns about isn't credible.
 Put a legend next to a figure and the reader has to hold the colour-to-name mapping in mind while
 reading the figure itself.
 
-| Implementation                                                                            | Where                            |
-| ----------------------------------------------------------------------------------------- | -------------------------------- |
-| **Direct labelling by default**. `legend: false` in `DEFAULTS`                            | `src/options.js`                 |
-| Bar puts the label at the start of each row, the value at the end of the bar              | `src/forms/bar.js`               |
-| Venn puts each label at its own circle's x-position (geometry moves, label moves with it) | `label()` in `src/forms/venn.js` |
-| Waffle places the value and label directly under the grid                                 | `src/forms/waffle.js`            |
+| Implementation                                                                                                                                                        | Where                            |
+| --------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------- |
+| **Direct labelling by default**. `legend: false` in `DEFAULTS`                                                                                                        | `src/options.js`                 |
+| Bar puts the label at the start of each row; values share one column at the row's end, so `tabular-nums` keeps every digit aligned for comparing values down the list | `src/forms/bar.js`               |
+| Venn puts each label at its own circle's x-position (geometry moves, label moves with it)                                                                             | `label()` in `src/forms/venn.js` |
+| Waffle places the value and label directly under the grid                                                                                                             | `src/forms/waffle.js`            |
 
 **Visual verification**: a bar label shares vertical centre with its own row's track (±2px). A
 venn label stays on its own side of the midline and still reaches its own circle. Moving
