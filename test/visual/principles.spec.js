@@ -279,6 +279,57 @@ test.describe('principle 4: signalling', () => {
       plain[0]['background-color'],
     );
   });
+
+  /*
+   * Flow's kicker and quadrant's title used to be `--ig-ink-1` blue on every
+   * card, emphasised or not — a singleton search among things that are already
+   * partly the singleton's own colour. Same shape as bar's tests above, on the
+   * text colour instead of a fill.
+   */
+  for (const { plainId, emphasisId, selector, onSelector } of [
+    {
+      plainId: 'flow',
+      emphasisId: 'flow-emphasis',
+      selector: '.ig-flow-step-label',
+      onSelector: '.ig-flow-step-on',
+    },
+    {
+      plainId: 'quadrant',
+      emphasisId: 'quadrant-emphasis',
+      selector: '.ig-quadrant-title',
+      onSelector: '.ig-quadrant-cell-on',
+    },
+  ]) {
+    test(`${plainId}: without emphasis every kicker/title is the same colour`, async ({ page }) => {
+      const texts = await page.evaluate(stylesOf, [stage(plainId), selector, ['color']]);
+      const colours = new Set(texts.map((t) => t.color));
+      expect(colours.size, `expected one colour, got ${[...colours].join(', ')}`).toBe(1);
+    });
+
+    test(`${emphasisId}: exactly one kicker/title turns ink-coloured, the rest stay gray`, async ({
+      page,
+    }) => {
+      const { emphasis } = caseById(emphasisId);
+      const texts = await page.evaluate(stylesOf, [stage(emphasisId), selector, ['color']]);
+      const highlighted = texts[/** @type {number} */ (emphasis) - 1].color;
+      const rest = texts.filter((_, i) => i !== /** @type {number} */ (emphasis) - 1);
+
+      expect(rest.map((t) => t.color)).not.toContain(highlighted);
+      expect(
+        new Set(rest.map((t) => t.color)).size,
+        'every non-emphasised one shares a colour',
+      ).toBe(1);
+
+      // And that colour is the one every kicker/title had before anything was
+      // emphasised — the reader never has to learn a new colour means important.
+      const plain = await page.evaluate(stylesOf, [stage(plainId), selector, ['color']]);
+      expect(rest[0].color).toBe(plain[0].color);
+
+      // No icon-shaped hole: the on-selector actually matched something.
+      const onCount = await page.locator(`${stage(emphasisId)} ${onSelector}`).count();
+      expect(onCount).toBe(1);
+    });
+  }
 });
 
 /* ------------------------------------------------------------------ *

@@ -417,10 +417,10 @@ describe('pyramid', () => {
     expect(render(maslow).querySelector('table')).toBeNull();
   });
 
-  it('names the figure top-down', () => {
+  it('names the figure top-down, as a rank order rather than a sequence', () => {
     const figure = render(maslow);
     expect(figure.getAttribute('aria-label')).toBe(
-      'Self-actualization → Esteem → Love and belonging → Safety needs → Physiological needs',
+      'Self-actualization, Esteem, Love and belonging, Safety needs, Physiological needs',
     );
   });
 });

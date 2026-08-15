@@ -160,16 +160,19 @@ header off its column, and fails by name.
 
 Two things emphasised is the same as none — the eye has nowhere to land.
 
-| Implementation                                                                   | Where                               |
-| -------------------------------------------------------------------------------- | ----------------------------------- |
-| Multiple `data-emphasis` marks: only the first survives, with advice             | `applyEmphasis()` in `src/parse.js` |
-| An emphasised bar keeps its colour; the rest drop to gray                        | `src/forms/bar.js`                  |
-| With no emphasis, every bar is the same colour (the whole category is the point) | same                                |
+| Implementation                                                                                                                                        | Where                                       |
+| ----------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------- |
+| Multiple `data-emphasis` marks: only the first survives, with advice                                                                                  | `applyEmphasis()` in `src/parse.js`         |
+| An emphasised bar keeps its colour; the rest drop to gray                                                                                             | `src/forms/bar.js`                          |
+| With no emphasis, every bar is the same colour (the whole category is the point)                                                                      | same                                        |
+| Flow's kicker and quadrant's title are gray at rest, ink-coloured only on the emphasised card — the chrome stays out of the one channel emphasis uses | `.ig-flow-step-label`, `.ig-quadrant-title` |
 
 **Visual verification**: with no emphasis, every bar has exactly one fill colour. With emphasis,
 the emphasised bar's colour differs from the rest, and the rest are all one colour. And:
 **the emphasised bar's colour is identical to what every bar's colour was without emphasis** —
-so the reader never has to learn "this new colour means important."
+so the reader never has to learn "this new colour means important." Flow and quadrant hold to the
+same rule on their own channel: with no emphasis every kicker/title is one gray, and with emphasis
+exactly one turns ink-coloured while the rest stay that same gray.
 
 ## 5. The consistency principle — decoration works against understanding
 
@@ -261,8 +264,12 @@ Three constraints fall out, each one enforced rather than left as a suggestion:
 | Icons share one shape registry with `data-ig-symbol` marks — same lookup, different use                   | `src/design/symbols.js`      |
 
 **Visual verification** (`test.describe('icons: an icon names, it never measures')` in
-`test/visual/principles.spec.js`): every icon in a figure is nearer, by centre-to-centre distance,
-to its own element's label than to any other element's — the one test a mis-wired icon slot
+`test/visual/principles.spec.js`): every icon in a figure is nearer, by the gap between their
+bounding boxes, to its own element's label than to any other element's — not centre-to-centre,
+which misfires the moment box sizes differ: pyramid's icon is pinned at a row's left edge while
+the label beside it varies wildly in width ("Self-actualization" vs. "Esteem"), so a long label's
+_centre_ can sit farther from its own icon than a short label's centre one row away sits from that
+same icon. The rectangle gap has no such blind spot — the one test a mis-wired icon slot
 actually fails; every icon in a figure is the same size, within a pixel; every icon paints at a
 non-zero size (catching a stroke-only path masked into nothing, the icon-shaped repeat of the
 partial-glyph defect above); and no icon overlaps the text it sits beside. The decoration probe's
@@ -423,18 +430,31 @@ real browser can verify this.
 
 **Visual verification** (hit testing via `document.elementFromPoint` — no pixel decoding):
 
-| Check                                                                      | What breaks if this fails                                              |
-| -------------------------------------------------------------------------- | ---------------------------------------------------------------------- |
-| The point where the two circles overlap is painted as `.ig-venn-circle-ab` | The intersection reads as "a third category," contradicting the claim  |
-| Outside the overlap, each circle paints alone                              | The lens isn't clipped and spreads across the whole shape              |
-| Changing `data-overlap` actually changes how wide the lens is              | The attribute is being ignored                                         |
-| Waffle is 100 cells, 10 columns, 10 rows, cells square within ±0.5px       | The "count the rows to read it" premise breaks                         |
-| Filled cells run contiguous from the start (43.8% → exactly the first 44)  | Scattered fill can't be counted — loses to a pie chart on its own turf |
-| No text is clipped (`scrollWidth <= clientWidth`)                          | A label exists, is correct, and can't be read                          |
-| No two text elements overlap                                               | Direct labelling ends up harder to read than a legend                  |
-| A figure never spills outside its container / slide                        | Edges get cut off when projected                                       |
+| Check                                                                            | What breaks if this fails                                              |
+| -------------------------------------------------------------------------------- | ---------------------------------------------------------------------- |
+| The point where the two circles overlap is painted as `.ig-venn-circle-ab`       | The intersection reads as "a third category," contradicting the claim  |
+| Outside the overlap, each circle paints alone                                    | The lens isn't clipped and spreads across the whole shape              |
+| Changing `data-overlap` actually changes how wide the lens is                    | The attribute is being ignored                                         |
+| Waffle is 100 cells, 10 columns, 10 rows, cells square within ±0.5px             | The "count the rows to read it" premise breaks                         |
+| Filled cells run contiguous from the start (43.8% → exactly the first 44)        | Scattered fill can't be counted — loses to a pie chart on its own turf |
+| Pyramid's accessible name joins tiers with a comma, not `→` (rank, not sequence) | A screen reader would hear a fabricated process instead of a hierarchy |
+| No text is clipped (`scrollWidth <= clientWidth`)                                | A label exists, is correct, and can't be read                          |
+| No two text elements overlap                                                     | Direct labelling ends up harder to read than a legend                  |
+| A figure never spills outside its container / slide                              | Edges get cut off when projected                                       |
 
 `clip-path` participates in hit testing too, so if the lens clip ever breaks, this fails
 immediately. Sample coordinates are computed from `VENN` and `centerDistance()` in
 `src/design/tokens.js`, not hand-picked numbers — they keep targeting the same feature of the
 drawing even if the canvas or radius changes.
+
+> **A trade-off decided on purpose, not by default.** Waffle fills in reading order — top-left,
+> row by row — which is what lets "count the rows" work without the reader first having to find
+> where counting starts. The cost: for any share under roughly half, that puts the filled block
+> at the top and the value/label caption at the bottom, next to the _unfilled_ rows rather than
+> the ones it's describing. A bottom-up fill (ISOTYPE's "level" metaphor — 43.8% "full," like a
+> gauge) would put the caption against the filled block instead, and stays just as countable from
+> the bottom row up. It isn't free: the fill condition in `src/forms/waffle.js` would need
+> inverting, the entrance stagger would need to run from the opposite end to still read as
+> accumulation, and two tests that assert "the first N cells in DOM order are filled" would need
+> rewriting. Kept as reading-order fill for now — both are defensible, and this one was cheaper to
+> get right — but it's a choice, not an oversight.

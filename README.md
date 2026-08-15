@@ -168,6 +168,12 @@ A 10×10 grid. Where a pie chart asks you to judge angle and area, this turns th
 Cell count rounds to the nearest integer, but **the printed value is always exactly what the author
 wrote**.
 
+The grid fills in reading order — top-left, row by row — so "count the rows" never leaves a reader
+hunting for where counting starts. The trade-off: below roughly half, that puts the caption next to
+the empty rows rather than the filled ones. A bottom-up ("level") fill would fix that at the cost of
+reordering the fill and its entrance animation; see [`docs/principles.md`](docs/principles.md) for
+the fuller reasoning behind keeping reading order.
+
 | Attribute    | Meaning                                             |
 | ------------ | --------------------------------------------------- |
 | `data-value` | A share (`43.8%`) or a count (`438`)                |

@@ -531,11 +531,23 @@
   --ig-icon-size: 1.6em;
 }
 
+/*
+ * Gray at rest, not blue. A blue kicker on every card, emphasised or not, is a
+ * singleton search among things that are already partly the singleton's own
+ * colour — the preattentive pop principle 4 relies on needs the chrome to stay
+ * out of the one channel emphasis uses. `bar`, `pyramid` and `cycle` already
+ * hold their label text neutral until `-on` fires; this brings the kicker in
+ * line with them.
+ */
 .ig-flow-step-label {
   font-size: var(--ig-note-size);
   font-weight: 700;
   letter-spacing: 0.08em;
   text-transform: uppercase;
+  color: var(--ig-text-2);
+}
+
+.ig-flow-step-on .ig-flow-step-label {
   color: var(--ig-ink-1);
 }
 
@@ -1122,12 +1134,17 @@
   --ig-icon-size: 1.25em;
 }
 
+/* Gray at rest, not blue — same reasoning as .ig-flow-step-label above. */
 .ig-quadrant-title {
   margin: 0;
   font-size: var(--ig-note-size);
   font-weight: 700;
   letter-spacing: 0.08em;
   text-transform: uppercase;
+  color: var(--ig-text-2);
+}
+
+.ig-quadrant-cell-on .ig-quadrant-title {
   color: var(--ig-ink-1);
 }
 
