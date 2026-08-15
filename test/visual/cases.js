@@ -290,6 +290,33 @@ export const CASES = [
                 data-a="社内開発とグローバル化推進の長期戦略" data-b="海外拠点" data-ab="文化統合"></div>`,
     note: 'A label long enough to reach past the figure wraps and grows downward instead — the AB label below it moves to make room.',
   },
+
+  {
+    id: 'flow-emphasis',
+    title: 'flow — with emphasis',
+    html: `<div data-infograph="flow" data-emphasis="2">
+             <div data-step="Problem">Fragmented teams</div>
+             <div data-step="Intervention">Culture integration</div>
+             <div data-step="Result">66% shorter lead time</div>
+           </div>`,
+    emphasis: 2,
+    note: 'Signalling: the emphasised step is the only one whose kicker turns ink-coloured — the rest stay the same gray they always are.',
+  },
+
+  {
+    id: 'quadrant-emphasis',
+    title: 'quadrant — with emphasis',
+    html: `<div data-infograph="quadrant" data-emphasis="1"
+                data-x-label="Urgency" data-columns="Urgent, Not urgent"
+                data-y-label="Importance" data-rows="Important, Not important">
+             <div data-label="Do First"><ul><li>Fix production bug</li><li>Client deadline today</li></ul></div>
+             <div data-label="Schedule"><ul><li>Plan Q3 roadmap</li></ul></div>
+             <div data-label="Delegate"><ul><li>Answer routine emails</li></ul></div>
+             <div data-label="Eliminate"><ul><li>Check social media</li></ul></div>
+           </div>`,
+    emphasis: 1,
+    note: 'Signalling: the emphasised cell is the only one whose title turns ink-coloured — the rest stay the same gray they always are.',
+  },
 ];
 
 /** @param {string} id */

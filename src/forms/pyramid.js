@@ -125,12 +125,17 @@ export default function pyramid({ host }) {
 
   return figure({
     form: 'pyramid',
+    // Comma, not '→' — flow and cycle earn the arrow because their items are a
+    // real sequence; a pyramid's tiers are rank, not sequence, so an arrow-joined
+    // name would hand a screen reader a fabricated process ("A → B → C") where a
+    // sighted reader sees a hierarchy. Matches the join quadrant already uses for
+    // its own same-level, non-sequential items (src/forms/quadrant.js).
     label:
       data.label ??
       items
         .map((item) => item.label)
         .filter(Boolean)
-        .join(' → '),
+        .join(', '),
     visual,
     // No hidden table: like flow, the tier labels are already real text in the
     // accessible tree, in rank order. Duplicating them would just be an echo.
