@@ -25,7 +25,7 @@ enforced and where.
 | ------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------ | --- |
 | [`stat`](#stat--a-single-headline-number)<br>a single headline number                             | ![stat example](test/visual/__screenshots__/screenshots.spec.js/stat.png)                                    |
 | [`waffle`](#waffle--a-share-of-the-whole)<br>a share of the whole, countable instead of estimated | ![waffle example](test/visual/__screenshots__/screenshots.spec.js/waffle.png)                                |
-| [`bar`](#bar--comparing-quantities)<br>comparing quantities, with at most one emphasis            | ![bar example with one bar emphasised](test/visual/__screenshots__/screenshots.spec.js/bar-emphasis.png)     |
+| [`bar`](#bar--comparing-quantities)<br>comparing quantities, with one or more emphasised          | ![bar example with one bar emphasised](test/visual/__screenshots__/screenshots.spec.js/bar-emphasis.png)     |
 | [`flow`](#flow--stages-in-order)<br>ordered stages with explicit connectors                       | ![flow example](test/visual/__screenshots__/screenshots.spec.js/flow.png)                                    |
 | [`compare`](#compare--two-points-in-time)<br>two points in time, with the delta computed for you  | ![compare example](test/visual/__screenshots__/screenshots.spec.js/compare.png)                              |
 | [`venn`](#venn--when-the-overlap-is-the-point)<br>when the overlap between two sets is the point  | ![venn example](test/visual/__screenshots__/screenshots.spec.js/venn-default.png)                            |
@@ -192,7 +192,8 @@ Horizontal bars. Category names are words, and words run wide — a horizontal b
 on its own row with no rotation and no truncation. The baseline is always zero; axis truncation
 isn't implemented, because it's the thing that stops length from meaning quantity.
 
-Add an emphasis and exactly that one bar keeps its colour while the rest drop to gray:
+Add an emphasis and that bar keeps its colour while the rest drop to gray — mark more than one
+(`data-emphasis="2,3"`) to keep several:
 
 ![bar example, one bar emphasised](test/visual/__screenshots__/screenshots.spec.js/bar-emphasis.png)
 
@@ -204,11 +205,11 @@ Add an emphasis and exactly that one bar keeps its colour while the rest drop to
 </div>
 ```
 
-| Attribute       | Meaning                                                                                |
-| --------------- | -------------------------------------------------------------------------------------- |
-| `data-items`    | `label: value` pairs, comma-separated                                                  |
-| `data-emphasis` | Which item to emphasise (1-based). A child's own `data-emphasis` also works            |
-| `data-label`    | The figure's overall name (used as the accessible name and the hidden table's caption) |
+| Attribute       | Meaning                                                                                                     |
+| --------------- | ----------------------------------------------------------------------------------------------------------- |
+| `data-items`    | `label: value` pairs, comma-separated                                                                       |
+| `data-emphasis` | Which item(s) to emphasise (1-based, comma-separated for several). A child's own `data-emphasis` also works |
+| `data-label`    | The figure's overall name (used as the accessible name and the hidden table's caption)                      |
 
 ### `flow` — stages in order
 
@@ -226,11 +227,12 @@ An arrow always sits between stages. Boxes in a row read as a "group" by proximi
 something has to state direction explicitly. Add `data-ig-fragment="steps"` to reveal one stage at
 a time as a reveal.js fragment.
 
-| Attribute                  | Meaning                                         |
-| -------------------------- | ----------------------------------------------- |
-| `<div>` / `data-step`      | One stage's label, in order                     |
-| `data-icon` on a stage     | See [Icons](#icons) below                       |
-| `data-ig-fragment="steps"` | Reveal one stage at a time as a reveal fragment |
+| Attribute                  | Meaning                                                           |
+| -------------------------- | ----------------------------------------------------------------- |
+| `<div>` / `data-step`      | One stage's label, in order                                       |
+| `data-emphasis`            | Which step(s) to emphasise (1-based, comma-separated for several) |
+| `data-icon` on a stage     | See [Icons](#icons) below                                         |
+| `data-ig-fragment="steps"` | Reveal one stage at a time as a reveal fragment                   |
 
 ### `compare` — two points in time
 
@@ -248,8 +250,8 @@ the slide. Leave the arithmetic to the audience and everyone finishes at a diffe
 talk has already moved on.
 
 The second item (usually the point being made) is emphasised by default; move it with
-`data-emphasis="1"`. No relative change is shown when the baseline is ≤ 0 (it would be a
-meaningless number).
+`data-emphasis="1"`, or emphasise both with `data-emphasis="1,2"`. No relative change is shown
+when the baseline is ≤ 0 (it would be a meaningless number).
 
 ### `venn` — when the overlap is the point
 
@@ -318,14 +320,14 @@ advisory pointing at `bar` or `waffle` for a quantitative story instead:
 ```
 
 `data-level` children and the `data-items` shorthand also work, via the same attribute-reading chain
-every other form uses. `data-emphasis` highlights one tier, same rule as `bar`.
+every other form uses. `data-emphasis` highlights one or more tiers, same rule as `bar`.
 
-| Attribute              | Meaning                                                      |
-| ---------------------- | ------------------------------------------------------------ |
-| `<li>` / `data-level`  | One tier's label, top to bottom                              |
-| `data-emphasis`        | Which tier to emphasise (1-based)                            |
-| `data-value` on a tier | Printed next to the label; never encoded in the tier's width |
-| `data-icon` on a tier  | See [Icons](#icons) below                                    |
+| Attribute              | Meaning                                                           |
+| ---------------------- | ----------------------------------------------------------------- |
+| `<li>` / `data-level`  | One tier's label, top to bottom                                   |
+| `data-emphasis`        | Which tier(s) to emphasise (1-based, comma-separated for several) |
+| `data-value` on a tier | Printed next to the label; never encoded in the tier's width      |
+| `data-icon` on a tier  | See [Icons](#icons) below                                         |
 
 A pyramid stays readable for two to seven tiers — Maslow's own hierarchy is five.
 
@@ -372,11 +374,11 @@ The connectors are real arcs along the ring, not straight lines between stages �
 between four stages trace a rhombus, not a circle. Connectors are chrome, not a mark: they stay one
 neutral colour regardless of `data-emphasis`, the same rule `flow`'s arrows already follow.
 
-| Attribute              | Meaning                                     |
-| ---------------------- | ------------------------------------------- |
-| `<li>` / `data-stage`  | One stage's label, in order around the ring |
-| `data-emphasis`        | Which stage to emphasise (1-based)          |
-| `data-icon` on a stage | See [Icons](#icons) below                   |
+| Attribute              | Meaning                                                            |
+| ---------------------- | ------------------------------------------------------------------ |
+| `<li>` / `data-stage`  | One stage's label, in order around the ring                        |
+| `data-emphasis`        | Which stage(s) to emphasise (1-based, comma-separated for several) |
+| `data-icon` on a stage | See [Icons](#icons) below                                          |
 
 A cycle stays readable for two to eight stages.
 
@@ -452,17 +454,17 @@ into geometry where assistive tech can't reach it.
 
 A cell with no `data-label` advises: without a title, the only way to know what a cell means is its
 position relative to the axis labels, and that meaning would be invisible to assistive tech.
-`data-emphasis` highlights one cell, same rule as `bar`.
+`data-emphasis` highlights one or more cells, same rule as `bar`.
 
-| Attribute                       | Meaning                                        |
-| ------------------------------- | ---------------------------------------------- |
-| `data-columns`                  | The two column names, left then right          |
-| `data-rows`                     | The two row names, top then bottom             |
-| `data-x-label` / `data-y-label` | What each axis measures — the dimension's name |
-| `data-label` on a cell          | That cell's title                              |
-| `<li>` / `data-item` in a cell  | One task in that cell                          |
-| `data-emphasis`                 | Which cell to emphasise (1-based)              |
-| `data-icon` on a cell           | See [Icons](#icons) below                      |
+| Attribute                       | Meaning                                                           |
+| ------------------------------- | ----------------------------------------------------------------- |
+| `data-columns`                  | The two column names, left then right                             |
+| `data-rows`                     | The two row names, top then bottom                                |
+| `data-x-label` / `data-y-label` | What each axis measures — the dimension's name                    |
+| `data-label` on a cell          | That cell's title                                                 |
+| `<li>` / `data-item` in a cell  | One task in that cell                                             |
+| `data-emphasis`                 | Which cell(s) to emphasise (1-based, comma-separated for several) |
+| `data-icon` on a cell           | See [Icons](#icons) below                                         |
 
 Both halves earn their place: a BCG matrix wants `data-x-label="Market share"` _and_
 `data-columns="High, Low"` — "High / Low" alone says nothing about what is high, and "Market share"

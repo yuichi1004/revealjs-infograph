@@ -28,7 +28,7 @@ import { advise } from '../warn.js';
 /** @type {import('./index.js').Form} */
 export default function compare({ host }) {
   const data = /** @type {HTMLElement} */ (host).dataset;
-  const items = applyEmphasis(readItems(host, 'item'), data.emphasis ?? '2', host);
+  const items = applyEmphasis(readItems(host, 'item'), data.emphasis ?? '2');
 
   if (items.length !== 2) {
     advise(`compare takes exactly two items, got ${items.length}`, {

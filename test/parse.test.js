@@ -206,15 +206,30 @@ describe('applyEmphasis', () => {
     expect(applyEmphasis(items, '2').map((i) => i.emphasis)).toEqual([false, true, false]);
   });
 
-  it('keeps only the first of several marked children', () => {
+  it('resolves a comma-separated list of 1-based indices', () => {
+    const items = parseItemList('A: 1, B: 2, C: 3, D: 4');
+    expect(applyEmphasis(items, '2,4').map((i) => i.emphasis)).toEqual([false, true, false, true]);
+  });
+
+  it('accepts full-width commas between indices', () => {
+    const items = parseItemList('A: 1, B: 2, C: 3, D: 4');
+    expect(applyEmphasis(items, '1、3').map((i) => i.emphasis)).toEqual([true, false, true, false]);
+  });
+
+  it('keeps every marked child, not just the first', () => {
     const items = parseItemList('A: 1, B: 2, C: 3');
     items[0].emphasis = true;
     items[2].emphasis = true;
-    expect(applyEmphasis(items, undefined).map((i) => i.emphasis)).toEqual([true, false, false]);
+    expect(applyEmphasis(items, undefined).map((i) => i.emphasis)).toEqual([true, false, true]);
   });
 
   it('ignores an out-of-range index rather than throwing', () => {
     const items = parseItemList('A: 1');
     expect(applyEmphasis(items, '9').map((i) => i.emphasis)).toEqual([false]);
+  });
+
+  it('ignores an out-of-range index within a list without dropping the valid ones', () => {
+    const items = parseItemList('A: 1, B: 2');
+    expect(applyEmphasis(items, '1,9').map((i) => i.emphasis)).toEqual([true, false]);
   });
 });

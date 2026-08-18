@@ -1188,36 +1188,47 @@ describe('data-emphasis: parity across item forms', () => {
   const ITEM_FORMS = {
     bar: {
       html: '<div data-infograph="bar" data-emphasis="2" data-items="A: 1, B: 2, C: 3, D: 4"></div>',
+      multiHtml:
+        '<div data-infograph="bar" data-emphasis="2,4" data-items="A: 1, B: 2, C: 3, D: 4"></div>',
       onSelector: '.ig-bar-row',
       onClass: 'ig-bar-row-on',
       expected: [false, true, false, false],
+      multiExpected: [false, true, false, true],
     },
     compare: {
       // compare only ever takes two items, and defaults its own emphasis to
       // the second — data-emphasis="1" here is the one value that proves the
       // host attribute is actually read, not just the built-in default.
       html: '<div data-infograph="compare" data-emphasis="1" data-items="A: 1, B: 2"></div>',
+      multiHtml: '<div data-infograph="compare" data-emphasis="1,2" data-items="A: 1, B: 2"></div>',
       onSelector: '.ig-compare-side',
       onClass: 'ig-compare-side-on',
       expected: [true, false],
+      multiExpected: [true, true],
     },
     flow: {
       html: '<div data-infograph="flow" data-emphasis="2" data-items="A, B, C, D"></div>',
+      multiHtml: '<div data-infograph="flow" data-emphasis="2,4" data-items="A, B, C, D"></div>',
       onSelector: '.ig-flow-step',
       onClass: 'ig-flow-step-on',
       expected: [false, true, false, false],
+      multiExpected: [false, true, false, true],
     },
     pyramid: {
       html: '<div data-infograph="pyramid" data-emphasis="2" data-items="A, B, C, D"></div>',
+      multiHtml: '<div data-infograph="pyramid" data-emphasis="2,4" data-items="A, B, C, D"></div>',
       onSelector: '.ig-pyramid-row',
       onClass: 'ig-pyramid-row-on',
       expected: [false, true, false, false],
+      multiExpected: [false, true, false, true],
     },
     cycle: {
       html: '<div data-infograph="cycle" data-emphasis="2" data-items="A, B, C, D"></div>',
+      multiHtml: '<div data-infograph="cycle" data-emphasis="2,4" data-items="A, B, C, D"></div>',
       onSelector: '.ig-cycle-label',
       onClass: 'ig-cycle-label-on',
       expected: [false, true, false, false],
+      multiExpected: [false, true, false, true],
     },
     quadrant: {
       html: `<div data-infograph="quadrant" data-emphasis="2">
@@ -1226,9 +1237,16 @@ describe('data-emphasis: parity across item forms', () => {
                <div data-label="C"></div>
                <div data-label="D"></div>
              </div>`,
+      multiHtml: `<div data-infograph="quadrant" data-emphasis="2,4">
+               <div data-label="A"></div>
+               <div data-label="B"></div>
+               <div data-label="C"></div>
+               <div data-label="D"></div>
+             </div>`,
       onSelector: '.ig-quadrant-cell',
       onClass: 'ig-quadrant-cell-on',
       expected: [false, true, false, false],
+      multiExpected: [false, true, false, true],
     },
   };
 
@@ -1245,4 +1263,13 @@ describe('data-emphasis: parity across item forms', () => {
     const marks = all(figure, spec.onSelector).map((el) => el.classList.contains(spec.onClass));
     expect(marks).toEqual(spec.expected);
   });
+
+  it.each(Object.entries(ITEM_FORMS))(
+    '%s honours a comma-separated data-emphasis list',
+    (_, spec) => {
+      const figure = render(spec.multiHtml);
+      const marks = all(figure, spec.onSelector).map((el) => el.classList.contains(spec.onClass));
+      expect(marks).toEqual(spec.multiExpected);
+    },
+  );
 });

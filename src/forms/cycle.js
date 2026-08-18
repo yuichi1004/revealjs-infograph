@@ -55,7 +55,7 @@ let uid = 0;
 /** @type {import('./index.js').Form} */
 export default function cycle({ host }) {
   const data = /** @type {HTMLElement} */ (host).dataset;
-  const items = applyEmphasis(readItems(host, 'stage'), data.emphasis, host);
+  const items = applyEmphasis(readItems(host, 'stage'), data.emphasis);
 
   if (items.length < 2) {
     advise('cycle needs at least two stages', {

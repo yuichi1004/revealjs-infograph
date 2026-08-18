@@ -11,7 +11,6 @@
  *      with one wrong-looking number beats a talk with a blank slide.
  */
 
-import { advise } from './warn.js';
 import { iconFor } from './icon.js';
 
 /**
@@ -93,7 +92,7 @@ export function formatNumber(value, spec) {
  * @property {string} label      What to print next to the mark.
  * @property {NumberSpec} number Parsed value (may be invalid for label-only forms).
  * @property {string} [note]     Secondary line.
- * @property {boolean} emphasis  Whether this is the one item to highlight.
+ * @property {boolean} emphasis  Whether this is one of the items to highlight.
  * @property {Element|null} [icon] This item's `data-icon`/`data-icon-path`/inline
  *   `<svg data-icon>`, already resolved to a node — see src/icon.js. Always
  *   `null` for items read from the `data-items="A, B"` shorthand, which has no
@@ -282,11 +281,15 @@ export function readItems(host, key) {
 }
 
 /**
- * Apply the "highlight exactly one thing" rule.
+ * Apply the "highlight a deliberate subset" rule.
  *
- * `data-emphasis="2"` (1-based) or `data-emphasis` on a child both work. If the
- * author marks several, the first wins and the rest are dropped — two competing
- * highlights is the same as none, since the eye has nowhere to land.
+ * `data-emphasis="2"` marks one item (1-based); `data-emphasis="2,4"` marks
+ * several. A child's own bare `data-emphasis` attribute works the same way,
+ * and marking more than one child is honoured rather than trimmed to the
+ * first — the host attribute is only consulted when no child already carries
+ * one. Full-width `、` is accepted alongside `,`, matching every other list
+ * this package reads (see `parseItemList` above), since these decks are
+ * written in Japanese.
  *
  * Generic over anything with a mutable `emphasis` flag, not just `Item` —
  * `quadrant`'s cells go through this too (src/forms/quadrant.js), and they
@@ -295,25 +298,15 @@ export function readItems(host, key) {
  * @template {{ emphasis: boolean }} T
  * @param {T[]} items
  * @param {string|undefined} attr  The host's `data-emphasis` value.
- * @param {Element} [host]         For the advisory message.
  * @returns {T[]}
  */
-export function applyEmphasis(items, attr, host) {
-  const marked = items.filter((item) => item.emphasis);
+export function applyEmphasis(items, attr) {
+  if (items.some((item) => item.emphasis)) return items;
 
-  if (marked.length > 1) {
-    advise('several items are marked data-emphasis; only the first is highlighted', {
-      element: host,
-      hint: 'Signalling only works when one thing stands out. Emphasise one item, or none.',
-    });
-    marked.slice(1).forEach((item) => (item.emphasis = false));
-    return items;
+  for (const token of (attr ?? '').split(/[,、]/)) {
+    const index = Number.parseInt(token.trim(), 10);
+    if (Number.isFinite(index) && items[index - 1]) items[index - 1].emphasis = true;
   }
-
-  if (marked.length === 1) return items;
-
-  const index = Number.parseInt(attr ?? '', 10);
-  if (Number.isFinite(index) && items[index - 1]) items[index - 1].emphasis = true;
 
   return items;
 }

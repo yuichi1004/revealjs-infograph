@@ -39,7 +39,7 @@ const MAX_SLOTS = 30;
 /** @type {import('./index.js').Form} */
 export default function bar({ host, config }) {
   const data = /** @type {HTMLElement} */ (host).dataset;
-  const items = applyEmphasis(readItems(host, 'item'), data.emphasis, host);
+  const items = applyEmphasis(readItems(host, 'item'), data.emphasis);
 
   if (!items.length) {
     advise('bar has no items', {
