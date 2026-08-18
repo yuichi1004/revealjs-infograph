@@ -156,23 +156,27 @@ not a defect, so the layout follows it faithfully. What it does catch is the lay
 from the markup: dropping the corner spacer that row-major auto-placement depends on shifts every
 header off its column, and fails by name.
 
-## 4. Signalling — exactly one emphasis
+## 4. Signalling — the emphasised set stands apart from the rest
 
-Two things emphasised is the same as none — the eye has nowhere to land.
+Emphasis is binary, not itemised: every item is either in the emphasised set or in the rest, and
+those two groups must read as visually distinct — otherwise the eye has nowhere to land. Marking
+everything is the same as marking nothing, since there is no longer a "rest" to contrast against.
+Within that rule, the emphasised set may hold one item or several — `data-emphasis="2"` and
+`data-emphasis="2,4"` both draw the same contrast, just over a different-sized group.
 
-| Implementation                                                                                                                                        | Where                                       |
-| ----------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------- |
-| Multiple `data-emphasis` marks: only the first survives, with advice                                                                                  | `applyEmphasis()` in `src/parse.js`         |
-| An emphasised bar keeps its colour; the rest drop to gray                                                                                             | `src/forms/bar.js`                          |
-| With no emphasis, every bar is the same colour (the whole category is the point)                                                                      | same                                        |
-| Flow's kicker and quadrant's title are gray at rest, ink-coloured only on the emphasised card — the chrome stays out of the one channel emphasis uses | `.ig-flow-step-label`, `.ig-quadrant-title` |
+| Implementation                                                                                                                                     | Where                                       |
+| -------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------- |
+| `data-emphasis` takes one 1-based index or a comma-separated list; a marked child works the same way                                               | `applyEmphasis()` in `src/parse.js`         |
+| Emphasised bars keep their colour; the rest drop to gray                                                                                           | `src/forms/bar.js`                          |
+| With no emphasis, every bar is the same colour (the whole category is the point)                                                                   | same                                        |
+| Flow's kicker and quadrant's title are gray at rest, ink-coloured only on emphasised cards — the chrome stays out of the one channel emphasis uses | `.ig-flow-step-label`, `.ig-quadrant-title` |
 
 **Visual verification**: with no emphasis, every bar has exactly one fill colour. With emphasis,
 the emphasised bar's colour differs from the rest, and the rest are all one colour. And:
 **the emphasised bar's colour is identical to what every bar's colour was without emphasis** —
 so the reader never has to learn "this new colour means important." Flow and quadrant hold to the
 same rule on their own channel: with no emphasis every kicker/title is one gray, and with emphasis
-exactly one turns ink-coloured while the rest stay that same gray.
+the emphasised card(s) turn ink-coloured while the rest stay that same gray.
 
 ## 5. The consistency principle — decoration works against understanding
 

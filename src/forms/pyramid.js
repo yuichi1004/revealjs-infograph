@@ -24,7 +24,7 @@
  *
  * Every tier is one mark colour. Tiers are ranks, not categories, so a colour
  * per tier would claim a distinction that is not there; `data-emphasis` picks
- * out one tier the same way it picks out one bar.
+ * out one or more tiers the same way it picks out bars.
  */
 
 import { el, cls } from '../dom.js';
@@ -45,7 +45,7 @@ const MAX_TIERS = 7;
 /** @type {import('./index.js').Form} */
 export default function pyramid({ host }) {
   const data = /** @type {HTMLElement} */ (host).dataset;
-  const items = applyEmphasis(readItems(host, 'level'), data.emphasis, host);
+  const items = applyEmphasis(readItems(host, 'level'), data.emphasis);
 
   if (items.length < 2) {
     advise('pyramid needs at least two levels', {

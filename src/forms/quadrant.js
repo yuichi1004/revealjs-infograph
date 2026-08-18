@@ -121,13 +121,13 @@ export default function quadrant({ host }) {
     };
   });
 
-  // Same "one host attribute, or a marked child, never both contradicting
+  // Same "one host attribute, or marked children, never both contradicting
   // each other" rule every other item form gets from readItems() — cells
   // aren't Items (they come straight from host.children, not readItems()),
   // but applyEmphasis() only ever needs an `.emphasis` boolean per entry, so
   // it applies here unchanged rather than this form re-deriving its own
   // (previously narrower — see git history) copy of the same rule.
-  applyEmphasis(cells, data.emphasis, host);
+  applyEmphasis(cells, data.emphasis);
 
   checkIcons(cells, host, 'quadrant cell');
 

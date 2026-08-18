@@ -43,7 +43,7 @@ const MAX_STEPS = 8;
 /** @type {import('./index.js').Form} */
 export default function flow({ host, config }) {
   const data = /** @type {HTMLElement} */ (host).dataset;
-  const items = applyEmphasis(readItems(host, 'step'), data.emphasis, host);
+  const items = applyEmphasis(readItems(host, 'step'), data.emphasis);
   const fragment = data.igFragment === 'steps' || data.igFragment === '';
 
   if (items.length < 2) {
