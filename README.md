@@ -557,7 +557,7 @@ would become the same area-judgement failure `data-ig-symbol` is built to avoid 
 lets that happen. See
 [docs/principles.md §5c](docs/principles.md#5c-an-icon-names-it-never-measures).
 
-Three notations, most explicit wins:
+Four notations, most explicit wins:
 
 ```html
 <!-- A built-in name. -->
@@ -565,6 +565,9 @@ Three notations, most explicit wins:
 
 <!-- Your own solid silhouette, drawn on a 24×24 grid. -->
 <div data-step="Plan" data-icon-path="M12 2 2 22h20z"></div>
+
+<!-- Your own raster image instead, masked by its own alpha channel. -->
+<div data-step="Plan" data-icon-src="/assets/handshake.png"></div>
 
 <!-- Or bring an icon set's own glyph, stroked or filled, pasted in unchanged. -->
 <div data-step="Plan">
@@ -578,7 +581,17 @@ Three notations, most explicit wins:
 | ----------------- | ------------------------------------------------------------------------------------------------------------------------------- |
 | `data-icon`       | One of `check` `flag` `clock` `target` `alert` `lightbulb` `gear` `document`, plus the [pictogram mark](#pictogram-marks) names |
 | `data-icon-path`  | Your own solid silhouette instead — an SVG path drawn on a 24×24 grid                                                           |
+| `data-icon-src`   | Your own raster image instead — a URL, masked the same way, painted from its alpha channel                                      |
 | `<svg data-icon>` | An inline SVG child — the escape hatch for a stroked icon set                                                                   |
+
+`data-icon-src` paints exactly like the other notations — same mask, same `currentColor`, same fixed
+size — with one difference worth knowing before you reach for it. It is a mask, not a picture: the
+image's own colours are discarded, and the shape comes from its alpha channel, so a fully opaque
+image (a plain photo, a flat-background PNG) paints as a solid square rather than a silhouette — use
+an image that is already transparent outside the glyph. And unlike the other three, which are
+inlined so a figure never depends on a network round-trip, this one is a URL the browser fetches: use
+a `data:` URI, or a same-origin asset your deck already preloads, to keep the resting state the
+finished state.
 
 An icon needs its own element's visible label, or it says nothing to a screen reader — icons are
 `aria-hidden`, same as every other purely graphical mark this package draws. An icon on an

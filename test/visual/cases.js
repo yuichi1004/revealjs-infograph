@@ -317,6 +317,22 @@ export const CASES = [
     emphasis: 1,
     note: 'Signalling: the emphasised cell is the only one whose title turns ink-coloured — the rest stay the same gray they always are.',
   },
+
+  {
+    id: 'flow-icon-src',
+    title: 'flow — with a raster icon',
+    // A 24×24 alpha-silhouette PNG (a filled circle, matching the built-in
+    // `circle` mark's proportions), inlined as a data URI so the case stays
+    // deterministic — no network fetch for a mask-image to race against first
+    // paint. Generated once with Node's zlib (see the PR that added this
+    // case for the script); any solid-alpha 24×24 PNG works equally well.
+    html: `<div data-infograph="flow">
+             <div data-step="Problem" data-icon-src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABgAAAAYCAYAAADgdz34AAAARElEQVR42mMQFBRkoCVmGBEW/CeAybbgP4mYJAv+k4mJsuA/hXhgLfhPJTxqwagFQ9mCoZ+T6VLY0aW4pkuFM1rpgzEA19yFvA061YUAAAAASUVORK5CYII=">Fragmented teams</div>
+             <div data-step="Intervention" data-icon-src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABgAAAAYCAYAAADgdz34AAAARElEQVR42mMQFBRkoCVmGBEW/CeAybbgP4mYJAv+k4mJsuA/hXhgLfhPJTxqwagFQ9mCoZ+T6VLY0aW4pkuFM1rpgzEA19yFvA061YUAAAAASUVORK5CYII=">Culture integration</div>
+             <div data-step="Result" data-icon-src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABgAAAAYCAYAAADgdz34AAAARElEQVR42mMQFBRkoCVmGBEW/CeAybbgP4mYJAv+k4mJsuA/hXhgLfhPJTxqwagFQ9mCoZ+T6VLY0aW4pkuFM1rpgzEA19yFvA061YUAAAAASUVORK5CYII=">66% shorter lead time</div>
+           </div>`,
+    note: 'data-icon-src masks with a raster silhouette the same way the other three notations mask with a vector one — same size, same currentColor, same rules.',
+  },
 ];
 
 /** @param {string} id */

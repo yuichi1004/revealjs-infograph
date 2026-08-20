@@ -1,5 +1,6 @@
 /**
- * Per-element icons — `data-icon`, `data-icon-path`, or an inline `<svg data-icon>`.
+ * Per-element icons — `data-icon`, `data-icon-path`, `data-icon-src`, or an
+ * inline `<svg data-icon>`.
  *
  * These are not `data-ig-symbol` marks (see src/design/symbols.js), and the
  * difference is the whole reason this feature is allowed to exist alongside
@@ -17,6 +18,13 @@
  * failure principle 5b exists to forbid, so nothing here exposes a way to do
  * that.
  *
+ * `data-icon-src` is the one notation that is not a vector: it masks with a
+ * raster URL instead of an authored `d` path, painted exactly the way the
+ * other three are — same `.ig-icon`, same `currentColor`, same fixed size —
+ * so only the source of the silhouette differs, never how it behaves. An
+ * opaque image masks nothing away and paints as a solid square; the shape has
+ * to come from the image's own alpha channel.
+ *
  * Three rules fall out, each one enforced by a test rather than left as a
  * suggestion:
  *
@@ -32,15 +40,16 @@
 
 import { el, cls } from './dom.js';
 import { hideFromAt } from './a11y.js';
-import { resolveSymbol, symbolUrl } from './design/symbols.js';
+import { resolveSymbol, symbolUrl, imageUrl } from './design/symbols.js';
 import { advise } from './warn.js';
 
 /**
  * Read an icon off one element: an inline `<svg data-icon>` child wins over
- * `data-icon-path`, which wins over `data-icon` — most explicit first, the
- * same precedence `resolveSymbol()` already gives a custom path over a name.
+ * `data-icon-src`, which wins over `data-icon-path`, which wins over
+ * `data-icon` — most explicit first, the same precedence `resolveSymbol()`
+ * already gives a custom path over a name.
  *
- * @param {Element} source The element that carries `data-icon`/`data-icon-path`.
+ * @param {Element} source The element that carries `data-icon`/`data-icon-path`/`data-icon-src`.
  * @returns {Element|null}
  */
 export function iconFor(source) {
@@ -57,6 +66,15 @@ export function iconFor(source) {
     clone.setAttribute('height', '100%');
     return hideFromAt(
       el('span', { class: [cls('icon'), cls('icon', 'inline')] }, hideFromAt(clone)),
+    );
+  }
+
+  if (data.iconSrc) {
+    return hideFromAt(
+      el('span', {
+        class: cls('icon'),
+        style: { '--ig-icon-image': imageUrl(data.iconSrc) },
+      }),
     );
   }
 
@@ -81,7 +99,9 @@ export function iconFor(source) {
  */
 export function hasIcon(source) {
   const data = /** @type {HTMLElement} */ (source).dataset;
-  return Boolean(data.icon || data.iconPath || source.querySelector(':scope > svg[data-icon]'));
+  return Boolean(
+    data.icon || data.iconPath || data.iconSrc || source.querySelector(':scope > svg[data-icon]'),
+  );
 }
 
 /**
