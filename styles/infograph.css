@@ -262,6 +262,12 @@
  * below, so every icon *within one figure* is still exactly one size (an icon
  * that varied in size next to its own kind would be exactly the area-judgement
  * failure principle 5b already forbids for marks).
+ *
+ * `data-icon-src` (see src/icon.js) paints through this same rule with a
+ * raster URL in place of an authored path: `mask-image` reads the image's own
+ * alpha channel, so the shape has to come from transparency in the source —
+ * an opaque image masks nothing away and paints as a solid `currentColor`
+ * square.
  */
 .ig-icon {
   display: inline-flex;

@@ -2,7 +2,7 @@ import { describe, it, expect } from 'vitest';
 import { render, text, all, warnings } from './helpers/mount.js';
 import { formNames, registerForm } from '../src/forms/index.js';
 import { WAFFLE, CYCLE } from '../src/design/tokens.js';
-import { SYMBOLS, resolveSymbol, symbolUrl } from '../src/design/symbols.js';
+import { SYMBOLS, resolveSymbol, symbolUrl, imageUrl } from '../src/design/symbols.js';
 import { iconFor } from '../src/icon.js';
 
 describe('stat', () => {
@@ -763,7 +763,7 @@ describe('quadrant', () => {
  * test/visual/principles.spec.js.
  */
 describe('icons', () => {
-  describe('the three notations', () => {
+  describe('the four notations', () => {
     it('reads data-icon as a built-in name', () => {
       const figure = render(`<div data-infograph="flow">
         <div data-step="Plan" data-icon="check"></div>
@@ -780,6 +780,26 @@ describe('icons', () => {
       const icon = /** @type {HTMLElement} */ (figure.querySelector('.ig-icon'));
       expect(decodeURIComponent(icon.style.getPropertyValue('--ig-icon-image'))).toContain(
         'M0 0h24v24H0z',
+      );
+    });
+
+    it('reads data-icon-src as a URL-addressed raster', () => {
+      const figure = render(`<div data-infograph="flow">
+        <div data-step="Plan" data-icon-src="/assets/handshake.png"></div>
+        <div data-step="Do" data-icon-src="/assets/handshake.png"></div>
+      </div>`);
+      const icon = /** @type {HTMLElement} */ (figure.querySelector('.ig-icon'));
+      expect(icon.style.getPropertyValue('--ig-icon-image')).toBe('url("/assets/handshake.png")');
+    });
+
+    it('leaves a data: URI unchanged', () => {
+      const figure = render(`<div data-infograph="flow">
+        <div data-step="Plan" data-icon-src="data:image/png;base64,AAAA"></div>
+        <div data-step="Do" data-icon-src="data:image/png;base64,AAAA"></div>
+      </div>`);
+      const icon = /** @type {HTMLElement} */ (figure.querySelector('.ig-icon'));
+      expect(icon.style.getPropertyValue('--ig-icon-image')).toBe(
+        'url("data:image/png;base64,AAAA")',
       );
     });
 
@@ -801,14 +821,33 @@ describe('icons', () => {
       expect(source.contains(svg)).toBe(true);
     });
 
-    it('prefers the inline svg over data-icon-path over data-icon', () => {
+    it('prefers the inline svg over data-icon-src over data-icon-path over data-icon', () => {
       const figure = render(`<div data-infograph="flow">
-        <div data-step="Plan" data-icon="check" data-icon-path="M0 0h1v1H0z">
+        <div
+          data-step="Plan"
+          data-icon="check"
+          data-icon-path="M0 0h1v1H0z"
+          data-icon-src="/assets/handshake.png"
+        >
           <svg data-icon viewBox="0 0 24 24"><circle r="10"/></svg>
         </div>
         <div data-step="Do"></div>
       </div>`);
       expect(figure.querySelector('.ig-flow-step .ig-icon-inline')).not.toBeNull();
+    });
+
+    it('prefers data-icon-src over data-icon-path over data-icon', () => {
+      const figure = render(`<div data-infograph="flow">
+        <div
+          data-step="Plan"
+          data-icon="check"
+          data-icon-path="M0 0h1v1H0z"
+          data-icon-src="/assets/handshake.png"
+        ></div>
+        <div data-step="Do"></div>
+      </div>`);
+      const icon = /** @type {HTMLElement} */ (figure.querySelector('.ig-flow-step .ig-icon'));
+      expect(icon.style.getPropertyValue('--ig-icon-image')).toBe('url("/assets/handshake.png")');
     });
 
     it('falls back to no icon on an unknown name, and advises with the built-in list', () => {
@@ -926,6 +965,14 @@ describe('icons', () => {
       </div>`);
       expect(warnings().join()).toMatch(/some quadrant cells have data-icon and some do not/);
     });
+
+    it('stays quiet about coverage when every element carries only data-icon-src', () => {
+      render(`<div data-infograph="flow">
+        <div data-step="Plan" data-icon-src="/assets/a.png"></div>
+        <div data-step="Do" data-icon-src="/assets/b.png"></div>
+      </div>`);
+      expect(warnings().join()).not.toMatch(/some flow steps/);
+    });
   });
 
   it('leaves the accessible name unchanged — icons are aria-hidden and add no text', () => {
@@ -1002,6 +1049,18 @@ describe('symbols', () => {
     for (const [name, symbol] of Object.entries(SYMBOLS)) {
       expect(symbol.viewBox, `${name} viewBox`).toBe('0 0 24 24');
     }
+  });
+
+  it('leaves an ordinary URL untouched', () => {
+    expect(imageUrl('/assets/handshake.png')).toBe('url("/assets/handshake.png")');
+  });
+
+  it('escapes a data-icon-src value so it cannot break out of the CSS url()', () => {
+    const url = imageUrl('/a".png"); } body { color: red');
+    // Nothing after url(" can close the quote early.
+    const payload = /^url\("(.*)"\)$/.exec(url)?.[1];
+    expect(payload, 'should be a quoted url()').toBeDefined();
+    expect(payload).not.toContain('"');
   });
 });
 

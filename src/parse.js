@@ -93,8 +93,9 @@ export function formatNumber(value, spec) {
  * @property {NumberSpec} number Parsed value (may be invalid for label-only forms).
  * @property {string} [note]     Secondary line.
  * @property {boolean} emphasis  Whether this is one of the items to highlight.
- * @property {Element|null} [icon] This item's `data-icon`/`data-icon-path`/inline
- *   `<svg data-icon>`, already resolved to a node — see src/icon.js. Always
+ * @property {Element|null} [icon] This item's `data-icon`/`data-icon-path`/
+ *   `data-icon-src`/inline `<svg data-icon>`, already resolved to a node — see
+ *   src/icon.js. Always
  *   `null` for items read from the `data-items="A, B"` shorthand, which has no
  *   attribute space for a fourth per-item fact.
  * @property {Element} [source]  The authored element, if there was one.

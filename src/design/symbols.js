@@ -254,3 +254,28 @@ export function symbolUrl(symbol) {
     `<path d="${symbol.path}"/></svg>`;
   return `url("data:image/svg+xml,${encodeURIComponent(svg)}")`;
 }
+
+/**
+ * A `data-icon-src` value as a CSS `url()`, ready for `mask-image`.
+ *
+ * The one deliberate exception to this module's "inline as a data URI, never
+ * fetch" rule (see `symbolUrl()` above): a raster silhouette is the whole
+ * point of `data-icon-src` (see src/icon.js), and a bitmap has no path form to
+ * inline. So this *does* let a figure's resting state depend on a network
+ * round-trip, or on the browser's disk cache for a URL painted before. The
+ * author owns that trade-off — pass a `data:image/...` URI, or a same-origin
+ * asset the deck already preloads, to keep the "resting state is the finished
+ * state" guarantee the rest of the package holds unconditionally.
+ *
+ * Escaping mirrors `symbolUrl()`'s reasoning, applied to a string this module
+ * did not author: percent-encode exactly the characters that would otherwise
+ * terminate the quoted `url()` early (`"`, backslash, and the CSS string
+ * newline characters). Percent-encoding is legal inside a URL, so a real
+ * asset path is unchanged; a hostile one cannot break out of the property.
+ *
+ * @param {string} src
+ * @returns {string}
+ */
+export function imageUrl(src) {
+  return `url("${src.replace(/["\\\n\r\f]/g, (c) => encodeURIComponent(c))}")`;
+}

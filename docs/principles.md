@@ -239,9 +239,10 @@ list, for a different and equally deliberate reason.
 ## 5c. An icon names, it never measures
 
 `flow`, `pyramid`, `cycle` and `quadrant` can attach an icon to each of their elements —
-`data-icon="check"`, `data-icon-path="M…"` for a custom silhouette, or an inline `<svg data-icon>`
-for a stroked icon-set glyph pasted in unchanged. That is a second use of the mask mechanism §5b
-just established rules for, and it needs its own rule to stay legitimate:
+`data-icon="check"`, `data-icon-path="M…"` for a custom silhouette, `data-icon-src="…"` for a raster
+image masked by its own alpha channel, or an inline `<svg data-icon>` for a stroked icon-set glyph
+pasted in unchanged. That is a second use of the mask mechanism §5b just established rules for, and
+it needs its own rule to stay legitimate:
 
 > An icon names, it never measures.
 
@@ -261,11 +262,22 @@ Three constraints fall out, each one enforced rather than left as a suggestion:
 | **Never alone** — an icon needs its own element's visible label, or it says nothing to a screen reader (icons are `aria-hidden`)      | `checkIcons()` in `src/icon.js`, called by each of the four forms         |
 | **All or nothing** — a lone icon among plain siblings competes with `data-emphasis` for the one signalling channel principle 4 allows | same `checkIcons()`                                                       |
 
-| Implementation                                                                                            | Where                        |
-| --------------------------------------------------------------------------------------------------------- | ---------------------------- |
-| Painted as a mask over the element's own background — same mechanism as §5b's marks                       | `src/icon.js`, `.ig-icon`    |
-| The bring-your-own-`<svg>` escape hatch is cloned, not moved, so the author's markup survives a re-render | `iconFor()` in `src/icon.js` |
-| Icons share one shape registry with `data-ig-symbol` marks — same lookup, different use                   | `src/design/symbols.js`      |
+| Implementation                                                                                              | Where                        |
+| ----------------------------------------------------------------------------------------------------------- | ---------------------------- |
+| Painted as a mask over the element's own background — same mechanism as §5b's marks                         | `src/icon.js`, `.ig-icon`    |
+| The bring-your-own-`<svg>` escape hatch is cloned, not moved, so the author's markup survives a re-render   | `iconFor()` in `src/icon.js` |
+| Icons share one shape registry with `data-ig-symbol` marks — same lookup, different use                     | `src/design/symbols.js`      |
+| `data-icon-src` masks with a raster URL instead of an authored path — `imageUrl()`, alongside `symbolUrl()` | `src/design/symbols.js`      |
+
+`data-icon-src` is a deliberate, documented exception to one guarantee every other notation keeps
+without exception: nothing in this package should render one frame incomplete and then, a network
+round-trip later, complete — "the resting state is the finished state" (principle 10). The other
+three notations are inlined as a data URI specifically so a figure never depends on a fetch. A raster
+silhouette has no path form to inline, so `data-icon-src` trades that guarantee for the ability to
+reference a bitmap by URL at all — the author owns keeping the trade-off cheap, by passing a `data:`
+URI or a same-origin asset the deck already preloads. This is not enforced or advised on: a
+same-origin `/assets/foo.png` is an entirely ordinary thing to author, and warning on every URL would
+be noise the "warn, never throw" contract (`src/warn.js`) is not meant to produce.
 
 **Visual verification** (`test.describe('icons: an icon names, it never measures')` in
 `test/visual/principles.spec.js`): every icon in a figure is nearer, by the gap between their

@@ -1360,6 +1360,10 @@ test.describe('icons: an icon names, it never measures', () => {
     { id: 'pyramid-icons', icons: '.ig-pyramid-label .ig-icon', labels: '.ig-pyramid-label-text' },
     { id: 'cycle-icons', icons: '.ig-cycle-label-iconed .ig-icon', labels: '.ig-cycle-label-text' },
     { id: 'quadrant-icons', icons: '.ig-quadrant-head .ig-icon', labels: '.ig-quadrant-title' },
+    // data-icon-src (a raster mask) has to earn the same four claims as the
+    // three vector notations above — nothing about painting from a bitmap's
+    // alpha channel is allowed to exempt it from any of them.
+    { id: 'flow-icon-src', icons: '.ig-flow-step .ig-icon', labels: '.ig-flow-step-label' },
   ];
 
   for (const { id, icons, labels } of cases) {
